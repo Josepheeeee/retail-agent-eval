@@ -1,0 +1,62 @@
+schema_version: 1
+locked_at: '2026-10-21'
+repositories:
+  tau-bench:
+    url: https://github.com/sierra-research/tau2-bench.git
+    ref: v1.0.1
+    commit: fc0055dc4e0a316c3f83133267fbd6faaa770992
+    license: MIT
+    use: runtime_environment
+  deepagents:
+    url: https://github.com/langchain-ai/deepagents.git
+    ref: HEAD-at-lock
+    commit: 4f8a6566d1c06c04f5d8d9614706f72ce64532e3
+    license: MIT
+    use: source_reference_runtime_from_pypi_lock
+  dspy:
+    url: https://github.com/stanfordnlp/dspy.git
+    ref: HEAD-at-lock
+    commit: 661b2f1a25218f3b44aa125384d11d5508316ecb
+    license: MIT
+    use: comparison_reference
+  gepa:
+    url: https://github.com/gepa-ai/gepa.git
+    ref: HEAD-at-lock
+    commit: 8f287de942f41a6d1e0e7e5b2d576247c4bedee9
+    license: MIT
+    use: source_reference_runtime_from_pypi_lock
+  JudgeLM:
+    url: https://github.com/baaivision/JudgeLM.git
+    ref: HEAD-at-lock
+    commit: 00c45169de47641f62223f57cc15b608bc3cc69d
+    license: Apache-2.0
+    use: method_reference_not_retail_labels
+  agent-world-model:
+    url: https://github.com/Snowflake-Labs/agent-world-model.git
+    ref: HEAD-at-lock
+    commit: 85e322f69279e3b3325b7377ec3bab788514e9cb
+    license: Not-declared-in-locked-tree
+    use: optional_synthetic_environment_reference
+documents:
+  taobao:
+    title: 淘宝AI购物助手在线评测落地实践
+    url: https://mp.weixin.qq.com/s/blMjReLQZUuSK6bl6Bt3yA
+    local_source: 淘宝评测.pdf
+    redistribution: not_included
+papers:
+  agentic-clear:
+    id: 2026.acl-demo.74
+    url: https://aclanthology.org/2026.acl-demo.74/
+    role: system_trace_node_granularity
+  agenteval:
+    id: arxiv:2604.23581v1
+    url: https://arxiv.org/abs/2604.23581v1
+    role: dependency_and_error_propagation_reference
+  agentdebug:
+    id: arxiv:2509.25370v1
+    url: https://arxiv.org/abs/2509.25370v1
+    role: failure_diagnosis_and_corrective_feedback
+  who-and-when:
+    id: pmlr-v267-zhang25cq
+    url: https://proceedings.mlr.press/v267/zhang25cq.html
+    role: attribution_annotation_and_validation

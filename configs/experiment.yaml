@@ -1,0 +1,36 @@
+schema_version: 1
+project: retail-agent-eval
+source: tau-bench-v1.0.1-retail
+reference_path: external/tau-bench
+split_salt: retail-eval-v1
+dev_tasks: 20
+rubric: rubrics/retail.yaml
+agent_prompt: prompts/agent.md
+judge_prompt: prompts/judge.md
+feedback_prompt: prompts/feedback.md
+judge_version: strong-layered-v1
+max_steps: 60
+max_output_tokens: 2048
+temperature: 0.0
+api_timeout: 120
+transport_retries: 2
+concurrency: 1
+trial_seeds: [100, 101, 102]
+optimization_seeds: [42, 43, 44]
+max_metric_calls: 150
+max_feedback_chars: 12000
+bootstrap_samples: 10000
+annotation_targets: {train: 240, dev: 80, test: 160}
+groups:
+  A0: {feedback: none, description: baseline}
+  A1: {feedback: manual, description: manual revision, max_dev_tasks: 20, max_hours: 2}
+  A2: {feedback: natural, description: normal GEPA}
+  A3: {feedback: layered, description: GEPA with layered attribution}
+  A3_no_layer: {feedback: no_layer, description: remove layer information}
+  A3_no_evidence: {feedback: no_evidence, description: remove evidence locations}
+judge_groups:
+  J0: {model_role: small_base, prompt: generic}
+  J1: {model_role: small_base, prompt: layered}
+  J2: {model_role: small_sft, prompt: generic}
+  J3: {model_role: small_sft, prompt: layered}
+  J4: {model_role: strong, prompt: layered}

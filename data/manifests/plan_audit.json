@@ -1,0 +1,94 @@
+{
+  "audit_time": "2026-10-21T13:57:02.986427+08:00",
+  "scope": "Engineering artifacts and local checks; not live model or research acceptance",
+  "required_files_checked": 34,
+  "missing_required_files": [],
+  "local_markdown_links_checked": 31,
+  "broken_local_links": [],
+  "reference_checkouts": {
+    "tau-bench": {
+      "expected_commit": "fc0055dc4e0a316c3f83133267fbd6faaa770992",
+      "actual_commit": "fc0055dc4e0a316c3f83133267fbd6faaa770992",
+      "matches": true,
+      "tracked_files_clean": true
+    },
+    "deepagents": {
+      "expected_commit": "4f8a6566d1c06c04f5d8d9614706f72ce64532e3",
+      "actual_commit": "4f8a6566d1c06c04f5d8d9614706f72ce64532e3",
+      "matches": true,
+      "tracked_files_clean": true
+    },
+    "dspy": {
+      "expected_commit": "661b2f1a25218f3b44aa125384d11d5508316ecb",
+      "actual_commit": "661b2f1a25218f3b44aa125384d11d5508316ecb",
+      "matches": true,
+      "tracked_files_clean": true
+    },
+    "gepa": {
+      "expected_commit": "8f287de942f41a6d1e0e7e5b2d576247c4bedee9",
+      "actual_commit": "8f287de942f41a6d1e0e7e5b2d576247c4bedee9",
+      "matches": true,
+      "tracked_files_clean": true
+    },
+    "JudgeLM": {
+      "expected_commit": "00c45169de47641f62223f57cc15b608bc3cc69d",
+      "actual_commit": "00c45169de47641f62223f57cc15b608bc3cc69d",
+      "matches": true,
+      "tracked_files_clean": true
+    },
+    "agent-world-model": {
+      "expected_commit": "85e322f69279e3b3325b7377ec3bab788514e9cb",
+      "actual_commit": "85e322f69279e3b3325b7377ec3bab788514e9cb",
+      "matches": true,
+      "tracked_files_clean": true
+    }
+  },
+  "split_counts": {
+    "dev": 20,
+    "train": 54,
+    "test": 40
+  },
+  "unique_task_ids": 114,
+  "python": "3.12.10",
+  "model_roles_configured": {
+    "agent": false,
+    "user": false,
+    "judge": false,
+    "reflection": false,
+    "small_base": false,
+    "small_sft": false,
+    "strong": false
+  },
+  "pytest": {
+    "command": ".venv/Scripts/python.exe -m pytest -q",
+    "exit_code": 0,
+    "passed": 26,
+    "warnings": 1,
+    "observed_seconds": 16.37,
+    "warning_source": "Upstream tau audioop deprecation during text-path import"
+  },
+  "pip_check": {
+    "exit_code": 0,
+    "result": "No broken requirements found"
+  },
+  "existing_run_manifests": {
+    "demo:complete": 4
+  },
+  "complete_formal_test_runs": 0,
+  "complete_optimization_runs": 0,
+  "git_author_configured": false,
+  "git_remote_configured": false,
+  "engineering_artifacts_verified": true,
+  "full_research_plan_complete": false,
+  "remaining": [
+    "Configure model roles and register actual versions",
+    "Five live-model retail tasks",
+    "Human annotations: train240/dev80/test160",
+    "Main optimization, ablations and second model",
+    "Frozen held-out tests and paired statistics",
+    "Remote SFT and fixed-trajectory Judge matrix",
+    "Actual conclusions, independent reproduction and GitHub publication"
+  ],
+  "latest_demo_run": "runs/20261021T055631Z-demo-fdf09557",
+  "latest_demo_validated": true
+}
