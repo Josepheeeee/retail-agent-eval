@@ -205,6 +205,6 @@ pool只合并单一live划分的完整采集run，拒绝重复trace_id并保存�
 
 当前已验证：固定样例闭环、无泄漏任务划分、真实DeepAgents SDK与零售工具往返、GEPA公开API离线适配、五个官方任务的脚本模型端到端适配、评分中断保留轨迹、错误类型/最早事件契约、人工完整标签保留、维度与定位指标、Judge SFT 配置导出、JD 30家公司来源与70条逐项复核。**真实API五任务、主实验、人工480标注与SFT仍未完成。**具体测试结果和运行记录见[STATE.md](docs/STATE.md)。
 
-## GitHub准备
+## GitHub
 
-本目录已独立初始化Git，分支codex/bootstrap。external、.venv、runs、.env、私有原始数据和权重均忽略跟踪；公开的是代码、可分发自制fixture、来源清单和研究协议。尚未创建远端仓库/推送；不要把“本地Git可用”误认为“ChatGPT已连接某GitHub账户”。准备推送时先检查本目录的remote与实际GitHub授权身份。
+公开仓库：[Josepheeeee/retail-agent-eval](https://github.com/Josepheeeee/retail-agent-eval)（`main`）。external、.venv、runs、.env、私有原始数据和权重均忽略跟踪；公开的是代码、可分发自制fixture、来源清单和研究协议。推送身份为 `Josepheeeee`，提交前已做凭证样式字符串扫描。上线真实运行后，结果报告需另行脱敏和选择性导出，不能直接把含用户信息的私有轨迹提交。

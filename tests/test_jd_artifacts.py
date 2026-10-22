@@ -29,8 +29,8 @@ def test_jd_manifest_covers_thirty_companies_and_seventy_jds():
 
 def test_jd_raw_hash_and_analysis_index_match_manifest():
     sources = json.loads((ROOT / "data/manifests/jd_sources.json").read_text(encoding="utf-8"))
-    raw = (ROOT / "docs/JD_RAW.md").read_bytes()
-    assert hashlib.sha256(raw).hexdigest() == sources["provenance"]["raw_sha256"]
+    raw = (ROOT / "docs/JD_RAW.md").read_text(encoding="utf-8").replace("\r\n", "\n")
+    assert hashlib.sha256(raw.encode("utf-8")).hexdigest() == sources["provenance"]["raw_sha256"]
     analysis = (ROOT / "docs/JD_ANALYSIS.md").read_text(encoding="utf-8")
     missing = [f"JD-{index:02d}" for index in range(1, 71) if f"JD-{index:02d}" not in analysis]
     assert not missing

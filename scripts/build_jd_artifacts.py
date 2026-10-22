@@ -327,7 +327,7 @@ def main():
         "missing_or_excluded_companies": [c["company"] for c in companies if c["coverage"] != "covered"],
         "provenance": {
             "raw_document": "docs/JD_RAW.md",
-            "raw_sha256": hashlib.sha256(RAW.read_bytes()).hexdigest(),
+            "raw_sha256": hashlib.sha256(raw_text.replace("\r\n", "\n").encode("utf-8")).hexdigest(),
             "corpus_sha256": hashlib.sha256((RUN / "corpus.json").read_bytes()).hexdigest(),
             "research_run": "runs/20261022-jd-research",
             "generator": "scripts/build_jd_artifacts.py",
