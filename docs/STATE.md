@@ -37,6 +37,7 @@
 - 人工标注导入保留六层标签、错误类型/位置、证据支持与review记录；报告新增总体+维度一致率、最早事件/轮次/层定位、错误类型准确率、ECE/Brier和证据直接支持率；`judge-robustness`增加语义保持的冗长重述一致性检查；teacher只作训练摘要。
 - Judge SFT默认Qwen3-4B非思考、LoRA rank32/alpha64/lr1e-4/global batch16/len4096/1 epoch、种子42/43/44；`judge-sft-config`导出LlamaFactory配置，导出上限2,000条不同轨迹并报告实际数量。
 - 新增`docs/JD_ANALYSIS.md`、`data/manifests/jd_sources.json`（30家公司）与`jd_review.json`（70条逐项分类/能力标签）；6家缺失公司已重新检索并记录URL与结论。
+- 远程端点批跑门禁：`configs/experiment.yaml`登记`budget.max_task_runs`与输入/输出价格（0允许），未登记时`assert_api_budget`在创建run前停止。
 - README复现命令；REFERENCES完整项目/论文映射；EXPERIMENTS完整预注册与480盲标计划；CONTRIBUTIONS复现/个人实现/创新证据边界。
 - 用户新增的Agentic CLEAR、AgentEval、AgentDebug、Who&When已访问官方论文页核验并加入REFERENCES与引用锁，同时更新实验和创新边界。未宣称已实现DAG根因分析或证明六层划分最优。
 

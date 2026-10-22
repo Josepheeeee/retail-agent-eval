@@ -155,11 +155,14 @@ def test_verbosity_variant_preserves_evidence_and_measures_drift(labelled):
 def test_remote_budget_must_be_registered():
     from retail_eval.run import assert_api_budget
     remote = {"agent": {"base_url": "https://api.example.com/v1"}}
+    prices = {"price_input_per_million": 1.0, "price_output_per_million": 2.0}
     with pytest.raises(ValueError, match="budget"):
-        assert_api_budget({"budget": {"max_task_runs": 0}}, 5, remote)
-    assert_api_budget({"budget": {"max_task_runs": 10}}, 5, remote)
+        assert_api_budget({"budget": {"max_task_runs": 0, **prices}}, 5, remote)
+    assert_api_budget({"budget": {"max_task_runs": 10, **prices}}, 5, remote)
+    with pytest.raises(ValueError, match="prices"):
+        assert_api_budget({"budget": {"max_task_runs": 10}}, 5, remote)
     with pytest.raises(ValueError, match="exceeded"):
-        assert_api_budget({"budget": {"max_task_runs": 4}}, 5, remote)
+        assert_api_budget({"budget": {"max_task_runs": 4, **prices}}, 5, remote)
     local = {"agent": {"base_url": "http://127.0.0.1:8000/v1"}}
     assert_api_budget({"budget": {"max_task_runs": 0}}, 5, local)
 

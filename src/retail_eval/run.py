@@ -81,6 +81,8 @@ def assert_api_budget(cfg, planned_task_runs, public_endpoints):
               if not any(local in value["base_url"] for local in ("127.0.0.1", "localhost", "0.0.0.0"))]
     if remote and not limit:
         raise ValueError("remote endpoint requires configs/experiment.yaml budget.max_task_runs before batch runs")
+    if remote and (budget.get("price_input_per_million") is None or budget.get("price_output_per_million") is None):
+        raise ValueError("remote endpoint requires input/output prices (0 is allowed) before batch runs")
 
 
 def new_run(kind, cfg, roles=(), prompt=None):

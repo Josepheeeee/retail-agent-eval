@@ -1,4 +1,4 @@
-﻿# 面向零售服务 Agent 的分层评测与失败归因驱动优化
+# 面向零售服务 Agent 的分层评测与失败归因驱动优化
 
 以淘宝评测实践为流程参考，以 DeepAgents 为被测对象，以 τ-bench 零售任务为可执行环境，检验分层失败反馈是否帮助 GEPA 在相同预算下改进 Agent。
 
@@ -111,7 +111,7 @@ if (-not (Test-Path -LiteralPath '.env')) {
 
 在本机编辑.env，填写API_KEY（或各角色API_KEY）、包含`/v1`的端点、AGENT_MODEL、USER_MODEL、JUDGE_MODEL；优化时再填REFLECTION_MODEL。支持OpenAI兼容Chat Completions；Agent必须支持tool calls，Judge需支持JSON object。不要把密钥发到聊天里或写进YAML。ChatGPT/Codex订阅与本地模型API配置分开管理，doctor只检查此工程的角色配置。
 
-商业/远程端点还需在`configs/experiment.yaml`的`budget.max_task_runs`登记本次批量最多任务运行数（0表示仅本地）；未登记时批跑直接停止。价格字段只用于成本报告，实际调用/Token/耗时写入run manifest；服务端不返回usage时记为未知。
+商业/远程端点还需在`configs/experiment.yaml`的`budget.max_task_runs`登记本次批量最多任务运行数（0表示仅本地），并填写输入/输出价格（可填0）；未登记或未填价格时批跑直接停止。价格字段只用于成本报告，实际调用/Token/耗时写入run manifest；服务端不返回usage时记为未知。
 
 ```powershell
 & $py -m retail_eval.run doctor
