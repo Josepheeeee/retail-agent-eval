@@ -15,8 +15,8 @@ from uuid import uuid4
 import yaml
 from dotenv import load_dotenv
 
-from .data import (assert_membership, blind_packets, clean_trace, export_sft,
-                   prepare_splits, unblind_annotations)
+from .data import (JUDGE_SFT_SEEDS, assert_membership, blind_packets, clean_trace, export_sft,
+                   judge_sft_config, prepare_splits, unblind_annotations)
 from .judge import ModelEndpoint, fixture_grade, judge_trace
 from .report import compare_judges, judge_metrics, make_report, paired_bootstrap
 from .schema import Grade, Trace, digest, read_jsonl, validate_grade, write_json, write_jsonl
@@ -33,6 +33,7 @@ def traces_at(path):
 
 
 def human_gold(path, traces):
+    """Load complete human labels, not only their overall verdict."""
     index = {t.trace_id: t for t in traces}
     gold = {}
     for row in read_jsonl(path):
@@ -43,7 +44,7 @@ def human_gold(path, traces):
         grade = validate_grade(Grade.model_validate(row["grade"]), index[row["trace_id"]])
         if grade.overall not in {"pass", "fail", "abstain"}:
             raise ValueError("human gold must be pass/fail/abstain")
-        gold[grade.trace_id] = grade.overall
+        gold[grade.trace_id] = grade
     return gold
 
 
@@ -197,6 +198,9 @@ def cli_parser():
     q.add_argument("--mapping", type=Path, required=True); q.add_argument("--output", type=Path, required=True)
     q = sub.add_parser("export-sft"); q.add_argument("--traces", type=Path, required=True)
     q.add_argument("--labels", type=Path, required=True); q.add_argument("--output", type=Path, required=True)
+    q = sub.add_parser("judge-sft-config"); q.add_argument("--data", type=Path, required=True)
+    q.add_argument("--output", type=Path, default=ROOT / "configs/generated")
+    q.add_argument("--seed", type=int, choices=list(JUDGE_SFT_SEEDS))
     return p
 
 
@@ -322,6 +326,7 @@ def execute(args, cfg, rubric):
         manifest["input_traces_sha256"] = digest([t.model_dump() for t in traces])
         write_jsonl(output / "traces.jsonl", traces)
         gold = human_gold(args.gold, traces) if cmd == "judge-matrix" and args.gold else None
+        records = read_jsonl(args.gold) if cmd == "judge-matrix" and args.gold else None
         all_grades = {}
         for group, settings in groups.items():
             folder = output / group; folder.mkdir()
@@ -333,7 +338,7 @@ def execute(args, cfg, rubric):
                 grades.append(grade)
                 write_json(folder / "raw" / (digest(trace.trace_id) + ".json"), raw)
                 write_jsonl(folder / "grades.jsonl", grades)
-            make_report(traces, grades, folder / "report", gold)
+            make_report(traces, grades, folder / "report", gold, gold_records=records)
             all_grades[group] = grades
         if gold is not None:
             compare_judges(all_grades, gold, output / "comparison")
@@ -345,11 +350,12 @@ def execute(args, cfg, rubric):
         index = {t.trace_id: t for t in traces}
         for g in grades:
             validate_grade(g, index[g.trace_id])
-        gold = None
+        gold, records = None, None
         if args.gold:
             gold = human_gold(args.gold, traces)
+            records = read_jsonl(args.gold)
         output = args.run / "report"
-        make_report(traces, grades, output, gold)
+        make_report(traces, grades, output, gold, gold_records=records)
         if gold is not None:
             write_json(output / "fixed_coverage.json", judge_metrics(grades, gold, args.coverage))
             write_json(output / "coverage_curve.json", [judge_metrics(grades, gold, c / 20) for c in range(1, 21)])
@@ -423,8 +429,14 @@ def execute(args, cfg, rubric):
         print(unblind_annotations(args.packets, args.mapping, args.output)); return
     if cmd == "export-sft":
         count = export_sft(traces_at(args.traces), read_jsonl(args.labels), args.output,
-                           (ROOT / cfg["judge_prompt"]).read_text(encoding="utf-8"), split_manifest(), rubric)
+                           (ROOT / cfg["judge_prompt"]).read_text(encoding="utf-8"), split_manifest(), rubric,
+                           cfg.get("judge_sft_max_trajectories", 2000))
         print(f"{count} train-only SFT rows -> {args.output}"); return
+    if cmd == "judge-sft-config":
+        seeds = [args.seed] if args.seed else list(JUDGE_SFT_SEEDS)
+        for seed in seeds:
+            judge_sft_config(seed, args.output, args.data.resolve())
+        print(f"{len(seeds)} LlamaFactory config(s) -> {args.output}"); return
     raise ValueError("unhandled command")
 
 

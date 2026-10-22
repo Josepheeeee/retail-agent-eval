@@ -21,6 +21,9 @@ max_metric_calls: 150
 max_feedback_chars: 12000
 bootstrap_samples: 10000
 annotation_targets: {train: 240, dev: 80, test: 160}
+judge_sft_max_trajectories: 2000
+judge_sft_base: Qwen/Qwen3-4B
+judge_sft_seeds: [42, 43, 44]
 groups:
   A0: {feedback: none, description: baseline}
   A1: {feedback: manual, description: manual revision, max_dev_tasks: 20, max_hours: 2}

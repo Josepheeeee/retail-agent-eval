@@ -1,4 +1,4 @@
-# 计划逐项验收表
+﻿# 计划逐项验收表
 
 核对日期：2026-10-21（Asia/Shanghai）。依据[批准计划](PLAN.md)、当前源码、固定参考树和本机实际验证。
 
@@ -87,6 +87,21 @@
 | 五类交付表/图/案例 | 生成程序/操作路径已具备 | **真实主表、修复案例、消融与泛化结果未形成** |
 | 另一位使用者按文档复现 | README/下一步指南已提供 | **尚未独立复现实验**；自测不等于独立使用者验收 |
 | GitHub公开工程与脱敏报告 | 忽略规则、独立Git已就绪 | **未提交/推送**：缺Git身份、remote，连接状态未确认 |
+
+## 本轮新增验收（2026-10-22）
+
+| 要求 | 状态 | 证据 |
+|---|---|---|
+| 错误类型/最早错误事件/支持类型/归因不确定性 | 已验证 | schema.py、judge.md、fixtures；错误类型与层一致性、最早事件证据引用、unknown低不确定性拒绝 |
+| 人工标签进入报告不再只剩总体 | 已验证 | unblind_annotations保留layers/error_type/earliest/support/review；make_report输出human_gold_records、维度、定位、校准 |
+| 维度/定位/校准指标 | 已验证 | dimension_metrics、localization_metrics、calibration_metrics、evidence_quality；测试 |
+| 标签来源分开 | 已验证 | 官方reward、Judge、human、teacher分别统计；teacher只作训练摘要 |
+| Judge SFT 2,000条上限与三种子配置 | 已验证 | export_sft max_trajectories、judge_sft_config、42/43/44 YAML |
+| 隔离/完整标签/定位/训练导出/聚合测试 | 已验证 | tests/test_research_contracts.py 6项；总计35 passed |
+| JD 30家公司来源清单 | 已验证 | data/manifests/jd_sources.json；30家、70条、4条排除、11家缺失、6家重检 |
+| 70条逐项复核与能力统计 | 已验证 | docs/JD_ANALYSIS.md、jd_review.json、jd_capability_stats.json |
+| Linux 训练/推理/评测脚本 | 已交付；未在H20实跑 | scripts/linux/*.sh、README |
+| Windows 离线入口 | 已验证 | scripts/windows/setup.ps1、check.ps1 |
 
 ## 阶段验收
 

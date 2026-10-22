@@ -1,0 +1,5 @@
+# Linux inference/serving stack for the small Judge or a local Agent model.
+vllm>=0.6,<1
+transformers>=4.46,<6
+huggingface-hub>=0.30,<2
+sentencepiece>=0.2,<1

@@ -26,6 +26,7 @@ $py = Join-Path $PWD '.venv\Scripts\python.exe'
 | 目的、假设、主实验/消融/Judge/统计与验收 | [EXPERIMENTS.md](docs/EXPERIMENTS.md) |
 | 个人改进与创新证据边界 | [CONTRIBUTIONS.md](docs/CONTRIBUTIONS.md) |
 | 项目记忆、已验证事实与下一步 | [STATE.md](docs/STATE.md) |
+| 70 条 JD 原文、30 家公司来源清单与能力映射 | [JD_RAW.md](docs/JD_RAW.md)、[jd_sources.json](data/manifests/jd_sources.json)、[JD_ANALYSIS.md](docs/JD_ANALYSIS.md) |
 
 ## 架构与职责
 
@@ -42,6 +43,8 @@ flowchart LR
 ```
 
 这是轻量评测Harness：管理版本、数据、执行、评分和产物。DeepAgents是被测对象；τ是业务环境；GEPA是优化器。第一版不建设Web平台、不做跨任务长期记忆或本地训练。STATE.md服务于开发助手，不是被测模型的记忆。
+
+每条 `Grade` 除六层状态外，还保留 `error_type`、`earliest_error_event`、`attribution_uncertainty` 和每层 `support`（direct/inferred/none）。无法定位时允许 `unclassified`/`null`/high，不强迫模型编造根因；若给出最早错误事件，必须能在该层证据中找到。报告把官方环境结果、LLM 判断、人工金标和教师标签分开，避免把“人工标签”压缩成只有一个总体结论。
 
 ```text
 configs/       固定模型行为、预算、实验组与随机种子
@@ -159,14 +162,24 @@ aggregate生成版本表、官方评分成分、失败分布与成本；compare�
 
 pool只合并单一live划分的完整采集run，拒绝重复trace_id并保存输入manifest哈希；执行异常从标注池排除但记载数量。A0训练集三trial只有162条，需采集其他已登记版本才能满足240条人工目标；不足时不要重复复制轨迹凑数。dev/test同理各自建池，test只用冻结后的正式轨迹。
 
-逐条将annotation的null替换为人工Grade内容（不含trace_id/judge_version），填写overall、六层状态/规则/理由/证据、cause及必要建议。参照data/fixtures/labels.json的结构；人工真值只允许pass/fail/abstain，不能以parse_error代替标注。每条事件证据必须存在。人工金标原始版本、独立复核与裁决记录单独保存。
+逐条将annotation的null替换为人工Grade内容（不含trace_id/judge_version），填写overall、六层状态/规则/理由/证据/支持类型、cause、error_type、earliest_error_event、attribution_uncertainty、confidence及必要建议。参照data/fixtures/labels.json的结构；人工真值只允许pass/fail/abstain，不能以parse_error代替标注。每条事件证据必须存在；无法确定时允许 `unclassified` + `null` + high，不强迫写根因。
+
+每个packet的 `review` 必须填写 `reviewer_id`、`round` 和 `status`（first/recheck/adjudicated）；导入时写入 `annotation_sha256`。至少20%轨迹做间隔复核/重标，分歧保留裁决记录。人工金标原始版本、复核与裁决记录单独保存；报告同时给出总体、六层维度、最早错误事件/轮次、证据支持率，而不是只保留总体结论。
 
 ```powershell
 & $py -m retail_eval.run annotation-import --packets data/annotations/train_packets.jsonl --mapping data/annotations/train_packets.mapping.json --output data/annotations/train_gold.jsonl
 & $py -m retail_eval.run export-sft --traces data/raw/train_pool.jsonl --labels data/annotations/train_gold.jsonl --output data/generated/retail_judge_sft.jsonl
 ```
 
-输出为messages-only SFT JSONL，旁置provenance.jsonl与manifest记录human/teacher来源、父任务和哈希。teacher补充数据需显式label_source=teacher；Gold准确率入口拒绝teacher。dev/test/fixture及无效证据不能导出训练。远端自行训练并记录超参/权重；本工程通过API接回，不执行本地训练。
+输出为messages-only SFT JSONL，旁置provenance.jsonl与manifest记录human/teacher来源、父任务和哈希。最多导出2,000条不同轨迹；不足时报告实际数量。teacher补充数据需显式label_source=teacher；Gold准确率入口拒绝teacher。dev/test/fixture及无效证据不能导出训练。
+
+小 Judge 默认 Qwen3-4B 非思考模式、LoRA SFT、种子42/43/44。导出 LlamaFactory 配置（rank32/alpha64/dropout0.05/lr1e-4/global batch16/len4096/1 epoch）：
+
+```powershell
+& $py -m retail_eval.run judge-sft-config --data data/generated/retail_judge_sft.jsonl --output configs/generated
+```
+
+远端训练与权重登记由[Linux脚本](scripts/linux/README.md)执行；本工程通过API接回 `SMALL_SFT` 角色，不执行本地训练。
 
 ## 固定轨迹的Judge实验
 
@@ -182,7 +195,7 @@ pool只合并单一live划分的完整采集run，拒绝重复trace_id并保存�
 & $py -m retail_eval.run report --run runs/替换为Judge矩阵目录/J3 --gold data/annotations/test_gold.jsonl --coverage 0.8
 ```
 
-有金标时生成混淆矩阵、同覆盖率数据、可靠性—耗时—Token对比；没有金标时不输出伪造准确率。真实失败误放行、弃判、解析失败和接口异常分别统计。Agent实验使用原固定Judge，Judge矩阵单独汇报。
+有金标时生成总体混淆矩阵、六层维度一致率、最早错误事件/轮次定位、错误类型准确率、ECE/Brier、证据直接支持率、同覆盖率数据与可靠性—耗时—Token对比；没有金标时不输出伪造准确率。真实失败误放行、弃判、解析失败和接口异常分别统计。阈值只由dev确定；test曲线只描述，不用来挑阈值。Agent实验使用原固定Judge，Judge矩阵单独汇报。
 
 ## 产物、异常与当前结果
 
@@ -190,7 +203,7 @@ pool只合并单一live划分的完整采集run，拒绝重复trace_id并保存�
 
 优化另有候选、反思、metric_ledger、GEPA状态、selected_prompt.md和optimization.png。开发曲线不是测试曲线。正式比较拒绝未完成运行；中断后保留原run，修复后创建新run，当前版本不自动断点续跑。runs默认不提交Git，公开结果时另行脱敏并选择性导出。
 
-当前已验证：固定样例闭环、无泄漏任务划分、真实DeepAgents SDK与零售工具往返、GEPA公开API离线适配、五个官方任务的脚本模型端到端适配、评分中断保留轨迹。**真实API五任务、主实验、人工480标注与SFT仍未完成。**具体测试结果和运行记录见[STATE.md](docs/STATE.md)。
+当前已验证：固定样例闭环、无泄漏任务划分、真实DeepAgents SDK与零售工具往返、GEPA公开API离线适配、五个官方任务的脚本模型端到端适配、评分中断保留轨迹、错误类型/最早事件契约、人工完整标签保留、维度与定位指标、Judge SFT 配置导出、JD 30家公司来源与70条逐项复核。**真实API五任务、主实验、人工480标注与SFT仍未完成。**具体测试结果和运行记录见[STATE.md](docs/STATE.md)。
 
 ## GitHub准备
 

@@ -8,7 +8,27 @@ from pathlib import Path
 
 import numpy as np
 
-from .schema import Grade, Trace, digest, write_json
+from .schema import LAYERS, Grade, Trace, digest, write_json
+
+
+def _as_grade(value):
+    if isinstance(value, Grade):
+        return value
+    if isinstance(value, dict):
+        if "grade" in value:
+            return Grade.model_validate(value["grade"])
+        if "overall" in value:
+            return Grade.model_validate({**value, "judge_version": value.get("judge_version", "human-v1")})
+    return None
+
+
+def _overall_map(gold: dict | None) -> dict[str, str]:
+    """Accept overall strings, Grade objects or label records for compatibility."""
+    result = {}
+    for trace_id, value in (gold or {}).items():
+        grade = _as_grade(value)
+        result[trace_id] = grade.overall if grade is not None else str(value)
+    return result
 
 
 def total_tokens(usage: dict | None):
@@ -50,7 +70,8 @@ def expense_summary(traces: list[Trace], grades: list[Grade]):
     return costs
 
 
-def judge_metrics(grades: list[Grade], gold: dict[str, str], coverage=1.0):
+def judge_metrics(grades: list[Grade], gold: dict, coverage=1.0):
+    gold = _overall_map(gold)
     if not 0 < coverage <= 1:
         raise ValueError("coverage must be in (0,1]")
     eligible = [g for g in grades if gold.get(g.trace_id) in {"pass", "fail"}]
@@ -77,6 +98,123 @@ def judge_metrics(grades: list[Grade], gold: dict[str, str], coverage=1.0):
             "gold_abstain_n": sum(gold.get(g.trace_id) == "abstain" for g in grades),
             "abstain_recall": ratio(sum(gold.get(g.trace_id) == "abstain" and g.overall == "abstain" for g in grades),
                                     sum(gold.get(g.trace_id) == "abstain" for g in grades))}
+
+
+def calibration_metrics(grades: list[Grade], gold: dict, bins=10):
+    """Expected calibration error and Brier score on decisions, never on abstains."""
+    gold_map = _overall_map(gold)
+    pairs = [(g.confidence, int(g.overall == gold_map.get(g.trace_id))) for g in grades
+             if g.overall in {"pass", "fail"} and gold_map.get(g.trace_id) in {"pass", "fail"}]
+    if not pairs:
+        return {"n": 0, "ece": None, "brier": None, "bins": []}
+    rows = []
+    ece = 0.0
+    for index in range(bins):
+        low, high = index / bins, (index + 1) / bins
+        bucket = [p for p in pairs if low <= p[0] < high or (index == bins - 1 and p[0] == 1)]
+        if not bucket:
+            continue
+        confidence = sum(p[0] for p in bucket) / len(bucket)
+        accuracy = sum(p[1] for p in bucket) / len(bucket)
+        ece += len(bucket) / len(pairs) * abs(accuracy - confidence)
+        rows.append({"low": low, "high": high, "n": len(bucket),
+                     "mean_confidence": confidence, "accuracy": accuracy})
+    brier = sum((p[0] - p[1]) ** 2 for p in pairs) / len(pairs)
+    return {"n": len(pairs), "ece": ece, "brier": brier, "bins": rows}
+
+
+def dimension_metrics(grades: list[Grade], gold: dict):
+    """Per-layer agreement and failure detection, using only human-labelled layers."""
+    gold_map = {k: _as_grade(v) for k, v in (gold or {}).items()}
+    gold_map = {k: v for k, v in gold_map.items() if v is not None}
+    if not gold_map:
+        return {"layers": {}, "n": 0}
+    by_id = {g.trace_id: g for g in grades}
+    result = {}
+    for layer in LAYERS:
+        # (human truth, automatic prediction)
+        pairs = [(g.layers[layer], by_id[t].layers[layer]) for t, g in gold_map.items()
+                 if t in by_id and layer in g.layers and layer in by_id[t].layers]
+        if not pairs:
+            result[layer] = {"n": 0}
+            continue
+        accuracy = sum(truth.status == pred.status for truth, pred in pairs) / len(pairs)
+        gold_fail = [(truth, pred) for truth, pred in pairs if truth.status == "fail"]
+        pred_fail = [(truth, pred) for truth, pred in pairs if pred.status == "fail"]
+        tp = sum(truth.status == "fail" and pred.status == "fail" for truth, pred in pairs)
+        precision = tp / len(pred_fail) if pred_fail else None
+        recall = tp / len(gold_fail) if gold_fail else None
+        result[layer] = {
+            "n": len(pairs), "accuracy": accuracy,
+            "gold_fail": len(gold_fail), "pred_fail": len(pred_fail), "tp": tp,
+            "precision": precision, "recall": recall,
+            "f1": (2 * precision * recall / (precision + recall))
+            if precision is not None and recall is not None and precision + recall else None,
+            "status_agreement": dict(Counter(f"{truth.status}->{pred.status}" for truth, pred in pairs)),
+        }
+    return {"n": len(gold_map), "layers": result}
+
+
+def _event_turn(traces: list[Trace]):
+    lookup = {}
+    for trace in traces:
+        lookup[trace.trace_id] = {e.id: e.turn for e in trace.events}
+    return lookup
+
+
+def localization_metrics(grades: list[Grade], gold: dict, traces: list[Trace]):
+    """Evaluate overall verdict, error type, error layer and first-error localization separately."""
+    gold_map = {k: _as_grade(v) for k, v in (gold or {}).items()}
+    gold_map = {k: v for k, v in gold_map.items() if v is not None}
+    by_id = {g.trace_id: g for g in grades}
+    turns = _event_turn(traces)
+    rows = []
+    for trace_id, truth in gold_map.items():
+        pred = by_id.get(trace_id)
+        if pred is None:
+            continue
+        rows.append((pred, truth, turns.get(trace_id, {})))
+    gold_fails = [(p, t) for p, t, _ in rows if t.overall == "fail"]
+    localized = [(p, t, turn) for p, t, turn in rows if t.overall == "fail" and t.earliest_error_event]
+    exact = same_turn = within_one = layer_match = 0
+    for pred, truth, turn in localized:
+        if not pred.earliest_error_event:
+            continue
+        exact += pred.earliest_error_event == truth.earliest_error_event
+        same_turn += turn.get(pred.earliest_error_event) == turn.get(truth.earliest_error_event)
+        a, b = turn.get(pred.earliest_error_event), turn.get(truth.earliest_error_event)
+        within_one += a is not None and b is not None and abs(a - b) <= 1
+
+        def layer_of(grade, event_id):
+            return next((k for k, v in grade.layers.items() if event_id in v.evidence), None)
+
+        pred_layer, gold_layer = layer_of(pred, pred.earliest_error_event), layer_of(truth, truth.earliest_error_event)
+        layer_match += pred_layer is not None and pred_layer == gold_layer
+    typed = [(p, t) for p, t in gold_fails if t.error_type not in {"unclassified", "none"}]
+    return {
+        "gold_fail": len(gold_fails),
+        "localized_gold": len(localized),
+        "predicted_localized": sum(bool(p.earliest_error_event) for p, _ in gold_fails),
+        "exact_event": exact if localized else None,
+        "same_turn": same_turn if localized else None,
+        "within_one_turn": within_one if localized else None,
+        "error_layer_match": layer_match if localized else None,
+        "error_type_accuracy": (sum(p.error_type == t.error_type for p, t in typed) / len(typed)) if typed else None,
+        "error_type_n": len(typed),
+        "abstain_on_gold_fail": sum(p.overall == "abstain" for p, _ in gold_fails),
+    }
+
+
+def evidence_quality(grades: list[Grade]):
+    failed = [layer for g in grades for layer in g.layers.values() if layer.status == "fail"]
+    return {
+        "fail_layers": len(failed),
+        "with_evidence": sum(bool(layer.evidence) for layer in failed),
+        "direct_support": sum(layer.support == "direct" for layer in failed),
+        "inferred_support": sum(layer.support == "inferred" for layer in failed),
+        "without_support": sum(layer.support == "none" for layer in failed),
+        "direct_support_rate": (sum(layer.support == "direct" for layer in failed) / len(failed)) if failed else None,
+    }
 
 
 def paired_bootstrap(a: list[Trace], b: list[Trace], samples=10000, seed=2026, trials=3):
@@ -119,7 +257,8 @@ def paired_bootstrap(a: list[Trace], b: list[Trace], samples=10000, seed=2026, t
             "warning": "one optimization seed cannot estimate optimizer variability" if len(seeds) == 1 else None}
 
 
-def make_report(traces: list[Trace], grades: list[Grade], output: Path, gold=None, expected_trials=3):
+def make_report(traces: list[Trace], grades: list[Grade], output: Path, gold=None, expected_trials=3,
+                gold_records=None, teacher_labels=None):
     output.mkdir(parents=True, exist_ok=True)
     if len({t.trace_id for t in traces}) != len(traces) or len({g.trace_id for g in grades}) != len(grades):
         raise ValueError("duplicate trace/grade identity")
@@ -155,11 +294,34 @@ def make_report(traces: list[Trace], grades: list[Grade], output: Path, gold=Non
                      "mean_judge_seconds": float(np.mean([g.elapsed_seconds for g in gs])) if gs else None})
     failures = Counter(k for g in grades for k, v in g.layers.items() if v.status == "fail")
     source = traces[0].source if traces else "empty"
+    gold_records = gold_records or []
+    if gold_records:
+        label_sources = dict(Counter(row.get("label_source", "human") for row in gold_records))
+        human_records = [row for row in gold_records if row.get("label_source", "human") == "human"]
+        teacher_records = [row for row in gold_records if row.get("label_source") == "teacher"]
+    else:
+        label_sources = {"human": len(gold)} if gold else {}
+        human_records = [{"trace_id": k, "label_source": "human", "grade": _as_grade(v).model_dump()}
+                         for k, v in (gold or {}).items() if _as_grade(v) is not None]
+        teacher_records = []
+    gold_map = {row["trace_id"]: Grade.model_validate(row["grade"]) for row in human_records}
+    human_reviews = {row["trace_id"]: row.get("review", {}) for row in human_records}
     payload = {"source": source, "not_a_benchmark": source != "live", "versions": rows,
                "expense": expense_summary(traces, grades),
                "official_components": [{"trace_id": t.trace_id, **t.reference} for t in traces],
                "first_layer_failure_counts": dict(Counter(next((k for k in ("CTX", "OOSR", "OOC", "TCC", "CNT") if g.layers.get(k) and g.layers[k].status == "fail"), "none") for g in grades)),
-               "all_failed_layers": dict(failures), "gold_metrics": judge_metrics(grades, gold) if gold is not None else None}
+               "all_failed_layers": dict(failures), "judge_evidence_quality": evidence_quality(grades),
+               "error_type_counts": dict(Counter(g.error_type for g in grades)),
+               "localized_failures": sum(bool(g.earliest_error_event) for g in grades if g.overall == "fail"),
+               "label_sources": label_sources,
+               "teacher_labels_summary": {"n": len(teacher_labels or teacher_records),
+                                          "used_for": "training signal only; never human-gold accuracy"},
+               "gold_metrics": judge_metrics(grades, gold_map) if gold_map else None,
+               "gold_dimensions": dimension_metrics(grades, gold_map) if gold_map else None,
+               "gold_localization": localization_metrics(grades, gold_map, traces) if gold_map else None,
+               "gold_calibration": calibration_metrics(grades, gold_map) if gold_map else None,
+               "human_gold_records": [{"trace_id": row["trace_id"], "grade": row["grade"],
+                                       "review": row.get("review", {})} for row in human_records]}
     write_json(output / "summary.json", payload)
     with (output / "versions.csv").open("w", encoding="utf-8-sig", newline="") as f:
         if rows:
@@ -170,11 +332,54 @@ def make_report(traces: list[Trace], grades: list[Grade], output: Path, gold=Non
     fmt = lambda v: "N/A" if v is None else f"{v:.3f}"
     for row in rows:
         lines.append(f"| {row['version']} | {row['n']} | {row['official_outcomes_known']} | {fmt(row['observed_official_success'])} | {fmt(row['pass3'])} | {row['judge_pass']}/{row['judge_fail']} | {row['abstain']}/{row['parse_error']}/{row['error']} |")
-    lines += ["", "## Failed layers", "", json.dumps(dict(failures)), "", "## Representative failures", ""]
+    lines += ["", "## Label provenance", "",
+              "Official environment outcomes, LLM verdicts, human gold and teacher labels are separate objects and are never pooled.",
+              "", f"- Sources: `{json.dumps(label_sources, ensure_ascii=False)}`",
+              f"- Teacher labels: {payload['teacher_labels_summary']['n']} (training signal only).", "",
+              "## Failed layers and error types", "", json.dumps(dict(failures)), "",
+              json.dumps(payload["error_type_counts"]), "",
+              f"Localized failures: {payload['localized_failures']} / {sum(g.overall == 'fail' for g in grades)}.",
+              "", "## Representative failures", ""]
     for grade in [g for g in grades if g.overall != "pass"][:10]:
-        lines.append(f"- `{grade.trace_id}`: {grade.overall}; cause={grade.cause}; {grade.recommendation or grade.error or ''}")
-    if gold is None:
-        lines += ["", "Human-gold accuracy/confusion is not available until independent labels are supplied."]
+        location = f"; earliest={grade.earliest_error_event}" if grade.earliest_error_event else "; earliest=unknown"
+        lines.append(f"- `{grade.trace_id}`: {grade.overall}; type={grade.error_type}{location}; "
+                     f"uncertainty={grade.attribution_uncertainty}; cause={grade.cause}; "
+                     f"{grade.recommendation or grade.error or ''}")
+    if gold_map:
+        gm = payload["gold_metrics"]
+        lines += ["", "## Independent human gold", "",
+                  f"Overall agreement: {fmt(gm['accuracy_decided'])} on {gm['decided']} decided labels; "
+                  f"coverage {fmt(gm['coverage'])}; false-pass rate {fmt(gm['false_pass_rate_decided_failures'])}.",
+                  "", "| Trace | Gold | Predicted | Error type | Earliest event | Uncertainty | Review |",
+                  "|---|---|---|---|---|---|---|"]
+        for row in payload["human_gold_records"]:
+            grade = Grade.model_validate(row["grade"])
+            pred = index.get(row["trace_id"])
+            review = row.get("review") or {}
+            review_text = f"{review.get('reviewer_id', 'n/a')} / {review.get('status', 'n/a')} / round {review.get('round', 'n/a')}"
+            lines.append(f"| `{row['trace_id']}` | {grade.overall} | {pred.overall if pred else 'n/a'} | "
+                         f"{grade.error_type} | {grade.earliest_error_event or 'unknown'} | "
+                         f"{grade.attribution_uncertainty} | {review_text} |")
+        lines += ["", "### Dimension agreement", "", "| Layer | N | Accuracy | Gold fails | TP | Precision | Recall |", "|---|---:|---:|---:|---:|---:|---:|"]
+        for layer, values in payload["gold_dimensions"]["layers"].items():
+            lines.append(f"| {layer} | {values.get('n', 0)} | {fmt(values.get('accuracy'))} | "
+                         f"{values.get('gold_fail', 'N/A')} | {values.get('tp', 'N/A')} | "
+                         f"{fmt(values.get('precision'))} | {fmt(values.get('recall'))} |")
+        loc = payload["gold_localization"]
+        lines += ["", "### Localization and calibration", "",
+                  f"- Exact first-error event: {loc['exact_event']} / {loc['localized_gold']} human-localized failures.",
+                  f"- Same turn: {loc['same_turn']}; within one turn: {loc['within_one_turn']}; layer match: {loc['error_layer_match']}.",
+                  f"- Error-type accuracy: {fmt(loc['error_type_accuracy'])} on {loc['error_type_n']} typed failures; "
+                  f"abstain on gold failure: {loc['abstain_on_gold_fail']}.",
+                  f"- ECE: {fmt(payload['gold_calibration']['ece'])}; Brier: {fmt(payload['gold_calibration']['brier'])}.",
+                  "", "### Judge evidence quality", "",
+                  f"Direct support on failed layers: {fmt(payload['judge_evidence_quality']['direct_support_rate'])} "
+                  f"({payload['judge_evidence_quality']['direct_support']} / {payload['judge_evidence_quality']['fail_layers']}).",
+                  "", "Annotations retain dimension labels, error location, evidence and review records. "
+                  "Only `label_source=human` enters these calculations."]
+    elif gold is None:
+        lines += ["", "Human-gold accuracy/confusion is not available until independent labels are supplied. "
+                  "Teacher labels never substitute for human gold."]
     (output / "report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     plot_report(payload, output)
     return payload
@@ -220,7 +425,11 @@ def compare_judges(groups: dict[str, list[Grade]], gold: dict[str, str], output:
         axes[0].plot([p["coverage"] for p in valid], [p["accuracy_decided"] for p in valid], label=name)
         tokens = [total_tokens(g.usage) for g in grades]
         known = [v for v in tokens if v is not None]
+        calibration = calibration_metrics(grades, gold)
         rows.append({"judge": name, **judge_metrics(grades, gold),
+                     "ece": calibration["ece"], "brier": calibration["brier"],
+                     "evidence_quality": evidence_quality(grades),
+                     "dimension_accuracy": {k: v.get("accuracy") for k, v in dimension_metrics(grades, gold)["layers"].items()},
                      "mean_seconds": float(np.mean([g.elapsed_seconds for g in grades])),
                      "mean_known_tokens": float(np.mean(known)) if known else None,
                      "usage_known": len(known)})

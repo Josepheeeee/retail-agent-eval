@@ -11,6 +11,7 @@ external/
 runs/
 data/raw/
 data/generated/
+configs/generated/
 data/annotations/
 *.pem
 *.key
@@ -19,3 +20,6 @@ data/annotations/
 *.pth
 Thumbs.db
 .DS_Store
+pytest-of-*/
+tmp_pytest/
+_tmp/

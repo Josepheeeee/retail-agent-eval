@@ -1,0 +1,11 @@
+# Linux H20 Judge SFT stack (separate from inference/Agent API use).
+torch>=2.4,<3
+transformers>=4.46,<6
+datasets>=3,<5
+accelerate>=1.0,<2
+peft>=0.13,<1
+trl>=0.11,<1
+deepspeed>=0.15,<1
+sentencepiece>=0.2,<1
+protobuf>=5,<7
+# LlamaFactory is installed from external/LlamaFactory at the pinned commit.

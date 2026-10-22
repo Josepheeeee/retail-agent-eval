@@ -7,6 +7,12 @@ from pathlib import Path
 
 from .schema import Grade, Trace, digest, read_jsonl, validate_grade, write_json, write_jsonl
 
+JUDGE_SFT_TARGETS = {"train": 240, "dev": 80, "test": 160}
+JUDGE_SFT_MAX_TRAJECTORIES = 2000
+JUDGE_SFT_SEEDS = (42, 43, 44)
+JUDGE_SFT_BASE = "Qwen/Qwen3-4B"  # non-thinking chat template; verify the exact revision at run time
+JUDGE_SFT_TEMPLATE = "qwen3"
+
 
 def prepare_splits(reference: Path, output: Path, salt="retail-eval-v1", dev_count=20):
     domain = reference / "data/tau2/domains/retail"
@@ -73,7 +79,8 @@ def blind_packets(traces: list[Trace], output: Path):
         bid = hashlib.sha256(("blind-v1:" + trace.trace_id).encode()).hexdigest()[:16]
         mapping[bid] = trace.trace_id
         packets.append({"blind_id": bid, "input": trace.visible(), "annotation": None,
-                        "instructions": "Fill annotation with complete Grade fields except trace_id/judge_version. Do not consult automatic scores."})
+                        "review": None,
+                        "instructions": "Fill annotation with complete Grade fields except trace_id/judge_version: overall, all six layers, cause, error_type, earliest_error_event, attribution_uncertainty, confidence. Cite only visible event IDs and record support (direct/inferred/none). Add review with reviewer_id, round, status and notes. Do not consult automatic scores."})
     write_jsonl(output, packets)
     write_json(output.with_suffix(".mapping.json"), mapping)
 
@@ -93,7 +100,15 @@ def unblind_annotations(packets: Path, mapping: Path, output: Path):
         check = Trace(trace_id=grade.trace_id, task_id="annotation-contract", split="demo", source="fixture",
                       agent_version="hidden", model="hidden", policy=visible["policy"], events=visible["events"])
         validate_grade(grade, check)
-        rows.append({"trace_id": grade.trace_id, "label_source": "human", "grade": grade.model_dump()})
+        review = packet.get("review")
+        if not isinstance(review, dict) or not review.get("reviewer_id"):
+            raise ValueError("human annotation needs a review record with reviewer_id")
+        if review.get("status") not in {"first", "recheck", "adjudicated"}:
+            raise ValueError("review.status must be first/recheck/adjudicated")
+        if not review.get("round"):
+            raise ValueError("review.round is required")
+        rows.append({"trace_id": grade.trace_id, "label_source": "human", "grade": grade.model_dump(),
+                     "review": {**review, "annotation_sha256": digest(annotation)}})
     write_jsonl(output, rows)
     return len(rows)
 
@@ -124,12 +139,18 @@ def stratified_sample(traces: list[Trace], count: int, seed=2026):
     return selected
 
 
-def export_sft(traces: list[Trace], labels: list[dict], output: Path, system_prompt: str, manifest: dict, rubric: dict):
+def export_sft(traces: list[Trace], labels: list[dict], output: Path, system_prompt: str, manifest: dict,
+               rubric: dict, max_trajectories: int = JUDGE_SFT_MAX_TRAJECTORIES):
     if output.exists():
         raise ValueError("SFT export already exists")
+    if not 0 < max_trajectories <= JUDGE_SFT_MAX_TRAJECTORIES:
+        raise ValueError(f"SFT export is capped at {JUDGE_SFT_MAX_TRAJECTORIES} distinct trajectories")
     assert_membership(traces, manifest)
     if len({t.trace_id for t in traces}) != len(traces):
         raise ValueError("duplicate input training traces")
+    distinct = {row["trace_id"] for row in labels}
+    if len(distinct) > max_trajectories:
+        raise ValueError(f"SFT export would exceed {max_trajectories} distinct trajectories; report the actual smaller set instead")
     index = {t.trace_id: t for t in traces}
     rows, seen = [], set()
     for row in labels:
@@ -158,6 +179,60 @@ def export_sft(traces: list[Trace], labels: list[dict], output: Path, system_pro
                                     "trace_sha256": digest(trace.model_dump()), "label_sha256": digest(row)}})
     write_jsonl(output, [{"messages": r["messages"]} for r in rows])
     write_jsonl(output.with_suffix(".provenance.jsonl"), [r["provenance"] for r in rows])
-    write_json(output.with_suffix(".manifest.json"), {"rows": len(rows), "split": "train", "sha256": digest(rows),
+    sources = {source: sum(r["provenance"]["label_source"] == source for r in rows) for source in ("human", "teacher")}
+    write_json(output.with_suffix(".manifest.json"), {"rows": len(rows), "distinct_trajectories": len(distinct),
+                                                      "split": "train", "sha256": digest(rows),
+                                                      "label_source_counts": sources, "cap": max_trajectories,
+                                                      "targets": JUDGE_SFT_TARGETS, "seeds": list(JUDGE_SFT_SEEDS),
                                                       "source_manifest_sha256": digest(manifest)})
     return len(rows)
+
+
+def judge_sft_config(seed: int, output: Path, data_path: Path, base_model: str = JUDGE_SFT_BASE):
+    """Emit a LlamaFactory LoRA config; training is executed on the Linux H20 host."""
+    if seed not in JUDGE_SFT_SEEDS:
+        raise ValueError("registered Judge SFT seeds are 42/43/44")
+    if not data_path.exists():
+        raise ValueError("export the train-only Judge SFT JSONL first")
+    config = {
+        "model_name_or_path": base_model,
+        "trust_remote_code": True,
+        "stage": "sft",
+        "do_train": True,
+        "finetuning_type": "lora",
+        "lora_rank": 32,
+        "lora_alpha": 64,
+        "lora_dropout": 0.05,
+        "dataset": "retail_judge_sft",
+        "dataset_dir": str(data_path.parent.resolve()),  # dataset_info.json lives next to the JSONL
+        "template": JUDGE_SFT_TEMPLATE,
+        "cutoff_len": 4096,
+        "overwrite_cache": False,
+        "preprocessing_num_workers": 8,
+        "output_dir": f"outputs/qwen3-4b-retail-judge-seed{seed}",
+        "logging_steps": 10,
+        "save_steps": 100,
+        "plot_loss": True,
+        "overwrite_output_dir": False,
+        "per_device_train_batch_size": 1,
+        "gradient_accumulation_steps": 4,
+        "learning_rate": 1e-4,
+        "num_train_epochs": 1,
+        "lr_scheduler_type": "cosine",
+        "warmup_ratio": 0.03,
+        "bf16": True,
+        "ddp_timeout": 180000000,
+        "report_to": "none",
+        "seed": seed,
+        "data_seed": seed,
+    }
+    dataset_info = {"retail_judge_sft": {"file_name": data_path.name, "formatting": "sharegpt",
+                                         "columns": {"messages": "messages"}}}
+    write_json(output / f"seed{seed}.yaml", config)
+    write_json(data_path.parent / "dataset_info.json", dataset_info)
+    write_json(output / "dataset_info.json", dataset_info)
+    write_json(output / "training_plan.json", {
+        "base_model": base_model, "template": JUDGE_SFT_TEMPLATE, "seeds": list(JUDGE_SFT_SEEDS),
+        "global_batch": 16, "gpus": 4, "per_device_batch": 1, "gradient_accumulation": 4,
+        "note": "Non-thinking Qwen3 template; freeze the exact model revision in the run manifest. Training is remote, not executed by this CLI."})
+    return config

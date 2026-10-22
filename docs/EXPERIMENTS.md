@@ -58,6 +58,8 @@ Rubric 唯一来源 rubrics/retail.yaml：
 
 归因分 data / prompt / rubric / agent / unknown。只有 agent/prompt 类型输出可修改位置与建议；其他问题进入修复队列，不指导 Agent 针对错误标签过拟合。Rubric 调整必须版本升级，使用开发集校准，重新建立公平基线；不能在一组优化中途更换。
 
+**错误定位契约：** 每个失败Grade新增 `error_type`（policy_violation、unconfirmed_write、wrong_tool_arguments、stale_or_false_claim、missing_required_action、privacy_leak、scope_handling、capability_overclaim、repetition、other、unclassified）、`earliest_error_event` 和 `attribution_uncertainty`（low/medium/high/unknown）；每层新增 `support`（direct/inferred/none）。最早事件必须可见且在该层evidence中；无法定位时允许 null + high，不强迫生成根因。错误类型与失败层必须一致（例如 privacy_leak 只能在 RED），unclassified 不能声称低不确定性。人工标签与自动Judge使用同一契约，但分开存储。
+
 新增论文映射：Agentic CLEAR支撑系统/轨迹/节点粒度联动；AgentDebug支撑诊断后的可定位反馈与修复检验；AgentEval支撑依赖传播扩展；Who&When提醒对归因位置单独做人工校验。它们不证明六层业务判定的最优性，当前也不声称已经实现DAG根因分析，详见REFERENCES.md。
 
 ## 5. 主实验 A0–A3
@@ -101,7 +103,7 @@ GEPA 搜索目标固定为官方 reward，分层评分用作反馈。train 供�
 
 按任务与官方结果分层、固定抽样种子2026；同任务多版本轨迹仍不是独立任务。先保证任务覆盖，再按层抽样补足。CLI annotation-export 可从单一划分池按 task/outcome 轮转抽样，不足配额时明确报错。必要时将多组轨迹合并成池，合并时拒绝重复trace_id并记录输入hash。
 
-标注包仅有盲ID、政策与事件；无模型、版本、官方结果和自动Judge。映射文件由组织者单独保存，不交标注者。人工填写 Grade 的 overall/layers/cause/证据等字段；带模型风格的原文不能完全盲化，这个局限需说明。对不少于20%轨迹进行独立复核/间隔重标；有第二位标注者时报告一致性并裁决分歧，只有一人时注明不是双人金标。CTX不充分与真实业务失败分开；不可判的金标不强行二分类。
+标注包仅有盲ID、政策与事件；无模型、版本、官方结果和自动Judge。映射文件由组织者单独保存，不交标注者。人工填写 Grade 的 overall/layers/cause/error_type/earliest_error_event/attribution_uncertainty/support/证据等完整字段，并填写 review（reviewer_id、round、first/recheck/adjudicated）；带模型风格的原文不能完全盲化，这个局限需说明。对不少于20%轨迹进行独立复核/间隔重标；有第二位标注者时报告一致性并裁决分歧，只有一人时注明不是双人金标。CTX不充分与真实业务失败分开；不可判的金标不强行二分类。导入后保留维度标签、错误位置、证据支持与review记录，报告分别评估总体、维度、定位与校准。
 
 人工原始标注不可覆盖；修订创建新版本，记录原因。Gold记录以 label_source=human 导入；teacher记录不能用于声称人工金标准确率。自动环境检查仅辅助，不代替人工语义标签。
 
@@ -117,6 +119,8 @@ GEPA 搜索目标固定为官方 reward，分层评分用作反馈。train 供�
 
 五组获得相同政策、事件、业务标准和JSON输出契约；通用组缺少显式漏斗执行提示，仍需满足共同输出验证。它检验的是额外分层指令，不是完全没有业务标准。J0/J1同权重，J2/J3同权重，SFT底座与J0一致。固定温度/输出上限/接口重试；多模型端点配置与权重ID登记。J4不是人工真值。
 
+小Judge默认 Qwen3-4B 非思考模式，LoRA SFT：rank32/alpha64/dropout0.05/lr1e-4/global batch16/最大长度4096/1 epoch，种子42/43/44；用LlamaFactory在远端四卡训练，`judge-sft-config`导出配置。训练集可含显式teacher标签，但最多2,000条不同轨迹；人工240目标不以teacher顶替，不足时报告实际数量。所有Judge对同一批冻结轨迹重评；新增置信度校准（ECE/Brier）、失败层证据直接支持率、保持语义的冗长干扰一致性检查；阈值只由dev确定。
+
 导出仅接受 live/train、合法标签、有效证据、显式human/teacher来源。输出 messages-only JSONL，旁置 provenance.jsonl 和 manifest。远端SFT记录底座/数据hash、学习率、epoch、batch、seed、checkpoint选择（仅dev）、训练代码版本、权重hash；本工程不运行Jupyter训练。训练后通过SMALL_SFT角色API接回本地。API超时/限流/解析失败保留，不挑重试后的最好答案。
 
 Agent主实验始终固定原来的评分协议；不能用新SFT Judge回头只重评某一实验组。若研究评分器漂移，冻结Agent轨迹，所有Judge对全部同一批轨迹重评，单独成表。
@@ -130,6 +134,8 @@ Agent主实验始终固定原来的评分协议；不能用新SFT Judge回头只
 **Judge**：二分类中pass为正类。TP=金标pass/预测pass，FP=金标fail/预测pass。准确率、Precision/Recall/F1在已判定的二分类金标上计算，同时报告总数、覆盖率、弃判、解析失败、接口异常。误放行=FP/(FP+TN)，另报FP/全部金标fail以及失败类覆盖率，防止遗漏失败样本。
 
 同覆盖率比较：按各Judge置信度降序、trace_id稳定打破同分，在预注册的50%/80%/100%覆盖率截取；覆盖率达不到时标记target_met=false，不比较假想准确率。使用dev选择部署阈值；测试曲线仅描述，不据其挑最优阈值。代码输出5%间隔覆盖率数据，可据此绘制可靠性—开销曲线。金标abstain另报弃判召回，不将其当pass/fail。
+
+**分层与定位指标（只看人工金标）：** 除总体混淆矩阵外，逐层报告状态一致率、失败precision/recall/F1；对人工标记了最早错误的失败，报告最早事件精确匹配、同轮次、±1轮次、错误层匹配和错误类型准确率；另报ECE（10 bin）与Brier、失败层证据直接支持率、人工失败上的弃判数。Teacher标签只作训练来源摘要，不进入这些准确率。自动Judge的 `support` 只描述其自报证据类型，不等于人工认可；引用存在也不等于语义支持。
 
 **主要统计**：任务为配对单位；每个 task×optimization_seed 保留三次trial并先取均值。对种子和任务分别有放回抽样，所有方法共享抽取的任务/种子，trial留在其原任务单元；10000次Bootstrap，随机种子2026，报告A3−A2差值、百分位95%CI、每种子差值。3种子不足以稳定估计优化随机性，因此完整报告种子差异。不能把360条测试轨迹当360个独立任务。若CI跨0，不声称稳定优越；若不跨0，仍需结合有限任务和多重探索限制判断。
 
