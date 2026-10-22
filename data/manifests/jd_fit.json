@@ -1,0 +1,1877 @@
+{
+  "schema_version": 1,
+  "analysis_date": "2026-10-22",
+  "scope": {
+    "records": 70,
+    "tags": 486,
+    "note": "Design coverage of the current repository, not hiring probability or live-model evidence."
+  },
+  "coverage_levels": {
+    "benchmark": {
+      "level": 1.0,
+      "rationale": "τ 零售 114 任务、54/20/40 划分、清单与哈希可追溯"
+    },
+    "metric": {
+      "level": 1.0,
+      "rationale": "官方 reward 与六层 Grade 分开保存，不合成单一总分"
+    },
+    "judge": {
+      "level": 1.0,
+      "rationale": "证据约束 Judge、J0–J4、盲标与复核协议"
+    },
+    "agent": {
+      "level": 1.0,
+      "rationale": "τ 轨迹、工具调用、环境重置、最早错误事件"
+    },
+    "calibration": {
+      "level": 1.0,
+      "rationale": "任务/种子配对 Bootstrap、ECE/Brier、人工一致性入口"
+    },
+    "contamination": {
+      "level": 1.0,
+      "rationale": "父任务同源分组、test 禁入、导出拒绝"
+    },
+    "safety": {
+      "level": 0.5,
+      "rationale": "只有 RED 隐私/越权层，不是对抗安全 benchmark"
+    },
+    "multimodal": {
+      "level": 0.0,
+      "rationale": "明确非目标，不用文本项目冒充多模态能力"
+    },
+    "longctx": {
+      "level": 0.0,
+      "rationale": "明确非目标；由另一个基座评测项目负责 RULER"
+    },
+    "code": {
+      "level": 0.0,
+      "rationale": "明确非目标；由另一个基座评测项目负责 HumanEval+"
+    },
+    "data": {
+      "level": 0.75,
+      "rationale": "盲标导入导出与 train-only SFT 导出；480 条标注尚未执行"
+    },
+    "training": {
+      "level": 0.5,
+      "rationale": "只有 Judge SFT 配置/导出，没有真实训练与接回"
+    },
+    "platform": {
+      "level": 0.4,
+      "rationale": "CLI、manifest、报告、冻结/比较；不是调度/看板平台"
+    },
+    "diagnosis": {
+      "level": 1.0,
+      "rationale": "六层、cause、error_type、earliest_error_event、证据支持"
+    }
+  },
+  "summary": {
+    "n": 70,
+    "mean_all": 0.6416586270871986,
+    "mean_core": 0.6699349588320177,
+    "mean_adjacent": 0.5614261664261665,
+    "mean_intern_campus": 0.6144019274376417,
+    "mean_intern_campus_core": 0.6475744047619048,
+    "mean_conditional_all": 0.7894314058956916,
+    "mean_conditional_core": 0.8066487706193589,
+    "tags": 486,
+    "tags_covered": 318.95,
+    "tags_lost": 167.05,
+    "jds_with_non_goal": 59,
+    "jds_without_non_goal": 11
+  },
+  "bands": {
+    "ge_90": 1,
+    "75_90": 11,
+    "50_75": 48,
+    "30_50": 9,
+    "lt_30": 1
+  },
+  "thresholds": [
+    {
+      "at_least": "80.0%",
+      "n": 8,
+      "core": 8
+    },
+    {
+      "at_least": "70.0%",
+      "n": 27,
+      "core": 24
+    },
+    {
+      "at_least": "60.0%",
+      "n": 51,
+      "core": 41
+    },
+    {
+      "at_least": "50.0%",
+      "n": 60,
+      "core": 47
+    }
+  ],
+  "capability_loss": [
+    {
+      "capability": "code",
+      "frequency": 45,
+      "level": 0.0,
+      "lost": 45.0
+    },
+    {
+      "capability": "multimodal",
+      "frequency": 37,
+      "level": 0.0,
+      "lost": 37.0
+    },
+    {
+      "capability": "platform",
+      "frequency": 58,
+      "level": 0.4,
+      "lost": 34.8
+    },
+    {
+      "capability": "training",
+      "frequency": 42,
+      "level": 0.5,
+      "lost": 21.0
+    },
+    {
+      "capability": "safety",
+      "frequency": 30,
+      "level": 0.5,
+      "lost": 15.0
+    },
+    {
+      "capability": "data",
+      "frequency": 29,
+      "level": 0.75,
+      "lost": 7.25
+    },
+    {
+      "capability": "longctx",
+      "frequency": 7,
+      "level": 0.0,
+      "lost": 7.0
+    },
+    {
+      "capability": "agent",
+      "frequency": 49,
+      "level": 1.0,
+      "lost": 0.0
+    },
+    {
+      "capability": "benchmark",
+      "frequency": 56,
+      "level": 1.0,
+      "lost": 0.0
+    },
+    {
+      "capability": "calibration",
+      "frequency": 32,
+      "level": 1.0,
+      "lost": 0.0
+    },
+    {
+      "capability": "contamination",
+      "frequency": 8,
+      "level": 1.0,
+      "lost": 0.0
+    },
+    {
+      "capability": "diagnosis",
+      "frequency": 27,
+      "level": 1.0,
+      "lost": 0.0
+    },
+    {
+      "capability": "judge",
+      "frequency": 27,
+      "level": 1.0,
+      "lost": 0.0
+    },
+    {
+      "capability": "metric",
+      "frequency": 39,
+      "level": 1.0,
+      "lost": 0.0
+    }
+  ],
+  "scenarios": {
+    "base": {
+      "changes": {},
+      "mean": 0.6416586270871986
+    },
+    "platform_0.8": {
+      "changes": {
+        "platform": 0.8
+      },
+      "mean": 0.6969041434755721
+    },
+    "training_0.9": {
+      "changes": {
+        "training": 0.9
+      },
+      "mean": 0.6742420119562977
+    },
+    "safety_0.8": {
+      "changes": {
+        "safety": 0.8
+      },
+      "mean": 0.6598376623376623
+    },
+    "three_weak_spots": {
+      "changes": {
+        "platform": 0.8,
+        "training": 0.9,
+        "safety": 0.8
+      },
+      "mean": 0.7476665635951351
+    },
+    "all_but_non_goals": {
+      "changes": {
+        "platform": 1.0,
+        "training": 1.0,
+        "safety": 1.0,
+        "data": 1.0
+      },
+      "mean": 0.8084446505875077
+    }
+  },
+  "sensitivity": {
+    "min": 0.5380091733663163,
+    "max": 0.7176853226138941,
+    "base": 0.6416586270871986,
+    "grid": {
+      "platform": [
+        0.0,
+        0.4,
+        0.6
+      ],
+      "training": [
+        0.25,
+        0.5,
+        0.75
+      ],
+      "data": [
+        0.5,
+        0.75,
+        1.0
+      ],
+      "safety": [
+        0.25,
+        0.5,
+        0.75
+      ]
+    }
+  },
+  "top": [
+    {
+      "jd_id": "JD-02",
+      "company": "腾讯",
+      "title": "微信小程序-大模型评测工程师-智能体方向",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "calibration"
+      ],
+      "score": 1.0,
+      "conditional_score": 1.0
+    },
+    {
+      "jd_id": "JD-54",
+      "company": "蚂蚁集团",
+      "title": "智能体评测理论实习生",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "calibration",
+        "safety"
+      ],
+      "score": 0.875,
+      "conditional_score": 0.875
+    },
+    {
+      "jd_id": "JD-10",
+      "company": "百度",
+      "title": "大模型智能标注与评测算法工程师（J105767）",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "calibration",
+        "data",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.8500000000000001,
+      "conditional_score": 0.8500000000000001
+    },
+    {
+      "jd_id": "JD-16",
+      "company": "美团",
+      "title": "【基座大模型北斗实习】开放域智能体交互与自动化评测演进机制研究",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "judge",
+        "agent",
+        "calibration",
+        "code",
+        "diagnosis"
+      ],
+      "score": 0.8333333333333334,
+      "conditional_score": 1.0
+    },
+    {
+      "jd_id": "JD-51",
+      "company": "蚂蚁集团",
+      "title": "【Plan A】大模型动态评测与评测诊断方向（AGI蓝军）-27届",
+      "category": "core",
+      "level_kind": "campus",
+      "capabilities": [
+        "metric",
+        "agent",
+        "calibration",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.8166666666666668,
+      "conditional_score": 0.8166666666666668
+    },
+    {
+      "jd_id": "JD-55",
+      "company": "蚂蚁集团",
+      "title": "【蚂蚁星】AI工程师-大模型评测-百灵-27届",
+      "category": "core",
+      "level_kind": "campus",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "agent",
+        "calibration",
+        "training",
+        "platform"
+      ],
+      "score": 0.8166666666666668,
+      "conditional_score": 0.8166666666666668
+    },
+    {
+      "jd_id": "JD-21",
+      "company": "商汤",
+      "title": "【27届校招】大模型评测算法工程师",
+      "category": "core",
+      "level_kind": "campus",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "contamination",
+        "safety",
+        "data",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.8150000000000001,
+      "conditional_score": 0.8150000000000001
+    },
+    {
+      "jd_id": "JD-08",
+      "company": "百度",
+      "title": "大模型评测算法工程师（J100902）",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "calibration",
+        "multimodal",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.8,
+      "conditional_score": 0.9142857142857144
+    }
+  ],
+  "bottom": [
+    {
+      "jd_id": "JD-37",
+      "company": "阿里巴巴",
+      "title": "日常实习生-大模型安全评测与原生安全机制研究",
+      "category": "adjacent",
+      "level_kind": "intern",
+      "capabilities": [
+        "safety",
+        "multimodal",
+        "code",
+        "platform"
+      ],
+      "score": 0.225,
+      "conditional_score": 0.45
+    },
+    {
+      "jd_id": "JD-11",
+      "company": "MiniMax",
+      "title": "大模型算法评测实习生",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "multimodal",
+        "code",
+        "platform"
+      ],
+      "score": 0.35,
+      "conditional_score": 0.7
+    },
+    {
+      "jd_id": "JD-14",
+      "company": "小红书",
+      "title": "【Ace顶尖实习生】大模型后训练泛化性研究",
+      "category": "adjacent",
+      "level_kind": "intern",
+      "capabilities": [
+        "calibration",
+        "multimodal",
+        "code",
+        "training"
+      ],
+      "score": 0.375,
+      "conditional_score": 0.75
+    },
+    {
+      "jd_id": "JD-36",
+      "company": "阿里巴巴",
+      "title": "日常实习生-多模态及视觉生成大模型安全评测与原生安全机制研究",
+      "category": "adjacent",
+      "level_kind": "intern",
+      "capabilities": [
+        "calibration",
+        "safety",
+        "multimodal",
+        "code",
+        "platform"
+      ],
+      "score": 0.38,
+      "conditional_score": 0.6333333333333333
+    },
+    {
+      "jd_id": "JD-52",
+      "company": "蚂蚁集团",
+      "title": "大模型评测研究实习生",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "multimodal",
+        "code",
+        "training",
+        "platform"
+      ],
+      "score": 0.38,
+      "conditional_score": 0.6333333333333333
+    }
+  ],
+  "records": [
+    {
+      "jd_id": "JD-01",
+      "company": "腾讯",
+      "title": "混元大模型评测算法研究员（北京）",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "multimodal",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.6799999999999999,
+      "conditional_score": 0.85
+    },
+    {
+      "jd_id": "JD-02",
+      "company": "腾讯",
+      "title": "微信小程序-大模型评测工程师-智能体方向",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "calibration"
+      ],
+      "score": 1.0,
+      "conditional_score": 1.0
+    },
+    {
+      "jd_id": "JD-03",
+      "company": "腾讯",
+      "title": "企业微信-评测算法工程师-（北京/成都）",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "multimodal",
+        "diagnosis"
+      ],
+      "score": 0.6666666666666666,
+      "conditional_score": 1.0
+    },
+    {
+      "jd_id": "JD-04",
+      "company": "腾讯",
+      "title": "企业微信协作工具-评测算法工程师",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "multimodal",
+        "diagnosis"
+      ],
+      "score": 0.6666666666666666,
+      "conditional_score": 1.0
+    },
+    {
+      "jd_id": "JD-05",
+      "company": "腾讯",
+      "title": "混元语音大模型agentic评测（北京/上海）",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "agent",
+        "calibration",
+        "contamination",
+        "multimodal",
+        "data",
+        "platform"
+      ],
+      "score": 0.7357142857142858,
+      "conditional_score": 0.8583333333333334
+    },
+    {
+      "jd_id": "JD-06",
+      "company": "腾讯",
+      "title": "具身大模型评测与数据工程师",
+      "category": "adjacent",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "calibration",
+        "multimodal",
+        "data",
+        "training"
+      ],
+      "score": 0.75,
+      "conditional_score": 0.875
+    },
+    {
+      "jd_id": "JD-07",
+      "company": "字节跳动",
+      "title": "大模型算法工程师（视频/图片创作-评估方向）-剪映CapCut（北京/上海/杭州/深圳/广州）",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "safety",
+        "multimodal",
+        "code",
+        "training",
+        "platform"
+      ],
+      "score": 0.6000000000000001,
+      "conditional_score": 0.7714285714285715
+    },
+    {
+      "jd_id": "JD-08",
+      "company": "百度",
+      "title": "大模型评测算法工程师（J100902）",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "calibration",
+        "multimodal",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.8,
+      "conditional_score": 0.9142857142857144
+    },
+    {
+      "jd_id": "JD-09",
+      "company": "百度",
+      "title": "大模型智能标注与智能评测算法工程师（全模态方向）（J105943）",
+      "category": "adjacent",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "calibration",
+        "safety",
+        "multimodal",
+        "data",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.740909090909091,
+      "conditional_score": 0.8150000000000001
+    },
+    {
+      "jd_id": "JD-10",
+      "company": "百度",
+      "title": "大模型智能标注与评测算法工程师（J105767）",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "calibration",
+        "data",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.8500000000000001,
+      "conditional_score": 0.8500000000000001
+    },
+    {
+      "jd_id": "JD-11",
+      "company": "MiniMax",
+      "title": "大模型算法评测实习生",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "multimodal",
+        "code",
+        "platform"
+      ],
+      "score": 0.35,
+      "conditional_score": 0.7
+    },
+    {
+      "jd_id": "JD-12",
+      "company": "小红书",
+      "title": "Dots-预训练评估策略",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "metric",
+        "calibration",
+        "code",
+        "data",
+        "training",
+        "platform"
+      ],
+      "score": 0.6083333333333333,
+      "conditional_score": 0.73
+    },
+    {
+      "jd_id": "JD-13",
+      "company": "小红书",
+      "title": "【Ace顶尖实习生】Dots-大模型评测算法研究员",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "judge",
+        "agent",
+        "calibration",
+        "contamination",
+        "safety",
+        "multimodal",
+        "longctx",
+        "code",
+        "data",
+        "training",
+        "platform"
+      ],
+      "score": 0.5958333333333333,
+      "conditional_score": 0.7944444444444445
+    },
+    {
+      "jd_id": "JD-14",
+      "company": "小红书",
+      "title": "【Ace顶尖实习生】大模型后训练泛化性研究",
+      "category": "adjacent",
+      "level_kind": "intern",
+      "capabilities": [
+        "calibration",
+        "multimodal",
+        "code",
+        "training"
+      ],
+      "score": 0.375,
+      "conditional_score": 0.75
+    },
+    {
+      "jd_id": "JD-15",
+      "company": "美团",
+      "title": "基座大模型研究分析实习生",
+      "category": "adjacent",
+      "level_kind": "intern",
+      "capabilities": [
+        "calibration",
+        "safety",
+        "multimodal",
+        "code",
+        "training",
+        "platform"
+      ],
+      "score": 0.39999999999999997,
+      "conditional_score": 0.6
+    },
+    {
+      "jd_id": "JD-16",
+      "company": "美团",
+      "title": "【基座大模型北斗实习】开放域智能体交互与自动化评测演进机制研究",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "judge",
+        "agent",
+        "calibration",
+        "code",
+        "diagnosis"
+      ],
+      "score": 0.8333333333333334,
+      "conditional_score": 1.0
+    },
+    {
+      "jd_id": "JD-17",
+      "company": "DeepSeek",
+      "title": "Agent Harness 团队（仅深度学习研究员方向进入分析）",
+      "category": "unverified",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "agent",
+        "calibration",
+        "multimodal",
+        "code",
+        "data",
+        "platform"
+      ],
+      "score": 0.64375,
+      "conditional_score": 0.8583333333333334
+    },
+    {
+      "jd_id": "JD-18",
+      "company": "京东",
+      "title": "算法开发岗（具身大模型评测研究）",
+      "category": "adjacent",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "agent",
+        "contamination",
+        "safety",
+        "multimodal",
+        "code",
+        "data",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.65,
+      "conditional_score": 0.7944444444444445
+    },
+    {
+      "jd_id": "JD-19",
+      "company": "阶跃星辰",
+      "title": "大模型评测算法实习生",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "agent",
+        "longctx",
+        "code",
+        "data",
+        "training"
+      ],
+      "score": 0.5416666666666666,
+      "conditional_score": 0.8125
+    },
+    {
+      "jd_id": "JD-20",
+      "company": "智谱",
+      "title": "GLM-Code Agent算法评测工程师",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "agent",
+        "code",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.7333333333333334,
+      "conditional_score": 0.8800000000000001
+    },
+    {
+      "jd_id": "JD-21",
+      "company": "商汤",
+      "title": "【27届校招】大模型评测算法工程师",
+      "category": "core",
+      "level_kind": "campus",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "contamination",
+        "safety",
+        "data",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.8150000000000001,
+      "conditional_score": 0.8150000000000001
+    },
+    {
+      "jd_id": "JD-22",
+      "company": "商汤",
+      "title": "大模型评测实习生（AI PPT）",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "judge",
+        "agent",
+        "multimodal",
+        "code",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.6285714285714287,
+      "conditional_score": 0.8800000000000001
+    },
+    {
+      "jd_id": "JD-23",
+      "company": "网易",
+      "title": "AI应用工程师（评测方向）",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "safety",
+        "code",
+        "data",
+        "platform"
+      ],
+      "score": 0.70625,
+      "conditional_score": 0.8071428571428572
+    },
+    {
+      "jd_id": "JD-24",
+      "company": "网易",
+      "title": "易盾-Agent安全算法实习生",
+      "category": "adjacent",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "agent",
+        "safety",
+        "platform"
+      ],
+      "score": 0.78,
+      "conditional_score": 0.78
+    },
+    {
+      "jd_id": "JD-25",
+      "company": "科大讯飞",
+      "title": "AI研究院-中级研究算法工程师-评测方向",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "metric",
+        "judge",
+        "agent",
+        "calibration",
+        "safety",
+        "multimodal",
+        "code",
+        "training",
+        "platform"
+      ],
+      "score": 0.6000000000000001,
+      "conditional_score": 0.7714285714285715
+    },
+    {
+      "jd_id": "JD-26",
+      "company": "阿里巴巴",
+      "title": "算法工程师-大模型评测",
+      "category": "core",
+      "level_kind": "campus",
+      "capabilities": [
+        "benchmark",
+        "judge",
+        "agent",
+        "safety",
+        "multimodal",
+        "code",
+        "training",
+        "platform"
+      ],
+      "score": 0.55,
+      "conditional_score": 0.7333333333333334
+    },
+    {
+      "jd_id": "JD-27",
+      "company": "阿里巴巴",
+      "title": "算法工程师-预训练评测",
+      "category": "core",
+      "level_kind": "campus",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "agent",
+        "longctx",
+        "code",
+        "data",
+        "training",
+        "platform"
+      ],
+      "score": 0.58125,
+      "conditional_score": 0.775
+    },
+    {
+      "jd_id": "JD-28",
+      "company": "阿里巴巴",
+      "title": "日常实习生-Agentic评测算法工程师-Qwen基础模型",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "safety",
+        "multimodal",
+        "code",
+        "training",
+        "platform"
+      ],
+      "score": 0.6000000000000001,
+      "conditional_score": 0.7714285714285715
+    },
+    {
+      "jd_id": "JD-29",
+      "company": "阿里巴巴",
+      "title": "日常实习生-Pre-training/Mid-training 评测算法-Qwen基础模型",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "agent",
+        "calibration",
+        "longctx",
+        "code",
+        "data",
+        "training",
+        "platform"
+      ],
+      "score": 0.6277777777777778,
+      "conditional_score": 0.8071428571428572
+    },
+    {
+      "jd_id": "JD-30",
+      "company": "阿里巴巴",
+      "title": "日常实习生-大模型应用评测算法-未来生活实验室",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "calibration",
+        "code",
+        "data",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.7388888888888889,
+      "conditional_score": 0.83125
+    },
+    {
+      "jd_id": "JD-31",
+      "company": "阿里巴巴",
+      "title": "日常实习生-数据智多星-数据评测算法方向",
+      "category": "adjacent",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "agent",
+        "code",
+        "data",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.6642857142857144,
+      "conditional_score": 0.775
+    },
+    {
+      "jd_id": "JD-32",
+      "company": "阿里巴巴",
+      "title": "智能体运行时安全评测与防御关键技术研究-阿里星",
+      "category": "core",
+      "level_kind": "campus",
+      "capabilities": [
+        "benchmark",
+        "agent",
+        "safety",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.78,
+      "conditional_score": 0.78
+    },
+    {
+      "jd_id": "JD-33",
+      "company": "阿里巴巴",
+      "title": "云安全大模型智能体对抗评测与能力边界定义-阿里星/A Star",
+      "category": "core",
+      "level_kind": "campus",
+      "capabilities": [
+        "judge",
+        "agent",
+        "safety",
+        "platform"
+      ],
+      "score": 0.725,
+      "conditional_score": 0.725
+    },
+    {
+      "jd_id": "JD-34",
+      "company": "阿里巴巴",
+      "title": "AI Coding 数据分析与评测-阿里星",
+      "category": "core",
+      "level_kind": "campus",
+      "capabilities": [
+        "benchmark",
+        "contamination",
+        "code",
+        "data",
+        "platform"
+      ],
+      "score": 0.63,
+      "conditional_score": 0.7875
+    },
+    {
+      "jd_id": "JD-35",
+      "company": "阿里巴巴",
+      "title": "阿里巴巴日常实习生-智能体安全评测",
+      "category": "adjacent",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "agent",
+        "safety",
+        "code",
+        "platform"
+      ],
+      "score": 0.58,
+      "conditional_score": 0.725
+    },
+    {
+      "jd_id": "JD-36",
+      "company": "阿里巴巴",
+      "title": "日常实习生-多模态及视觉生成大模型安全评测与原生安全机制研究",
+      "category": "adjacent",
+      "level_kind": "intern",
+      "capabilities": [
+        "calibration",
+        "safety",
+        "multimodal",
+        "code",
+        "platform"
+      ],
+      "score": 0.38,
+      "conditional_score": 0.6333333333333333
+    },
+    {
+      "jd_id": "JD-37",
+      "company": "阿里巴巴",
+      "title": "日常实习生-大模型安全评测与原生安全机制研究",
+      "category": "adjacent",
+      "level_kind": "intern",
+      "capabilities": [
+        "safety",
+        "multimodal",
+        "code",
+        "platform"
+      ],
+      "score": 0.225,
+      "conditional_score": 0.45
+    },
+    {
+      "jd_id": "JD-38",
+      "company": "阿里巴巴",
+      "title": "日常实习生-大模型数据评测-Qwen基础模型",
+      "category": "adjacent",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "agent",
+        "calibration",
+        "contamination",
+        "multimodal",
+        "code",
+        "data",
+        "training",
+        "platform"
+      ],
+      "score": 0.665,
+      "conditional_score": 0.83125
+    },
+    {
+      "jd_id": "JD-39",
+      "company": "阿里巴巴",
+      "title": "AI评测工程师",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "multimodal",
+        "code",
+        "training",
+        "platform"
+      ],
+      "score": 0.6125,
+      "conditional_score": 0.8166666666666668
+    },
+    {
+      "jd_id": "JD-40",
+      "company": "阿里巴巴",
+      "title": "日常实习生-大模型安全评测实习生",
+      "category": "adjacent",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "calibration",
+        "safety",
+        "code",
+        "data",
+        "training",
+        "platform"
+      ],
+      "score": 0.6833333333333333,
+      "conditional_score": 0.76875
+    },
+    {
+      "jd_id": "JD-41",
+      "company": "蚂蚁集团",
+      "title": "蚂蚁集团-大模型评测专家-北京/杭州【AGI专项】",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "code",
+        "training"
+      ],
+      "score": 0.5,
+      "conditional_score": 0.75
+    },
+    {
+      "jd_id": "JD-42",
+      "company": "蚂蚁集团",
+      "title": "蚂蚁集团-多模态大模型评测-杭州/北京【AGI专项】",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "agent",
+        "safety",
+        "multimodal",
+        "code",
+        "platform"
+      ],
+      "score": 0.5571428571428572,
+      "conditional_score": 0.78
+    },
+    {
+      "jd_id": "JD-43",
+      "company": "蚂蚁集团",
+      "title": "蚂蚁集团-AI算法评测工程师-支付宝技术",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "calibration",
+        "safety",
+        "code",
+        "data",
+        "platform"
+      ],
+      "score": 0.7388888888888889,
+      "conditional_score": 0.83125
+    },
+    {
+      "jd_id": "JD-44",
+      "company": "蚂蚁集团",
+      "title": "蚂蚁集团-AI算法评测工程师-端智能",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "calibration",
+        "contamination",
+        "multimodal",
+        "code",
+        "data",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.7208333333333333,
+      "conditional_score": 0.865
+    },
+    {
+      "jd_id": "JD-45",
+      "company": "蚂蚁集团",
+      "title": "蚂蚁集团-大模型应用算法（自动化评测与benchmark）-健康事业群",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "calibration",
+        "contamination",
+        "safety",
+        "longctx",
+        "code",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.7000000000000001,
+      "conditional_score": 0.8400000000000001
+    },
+    {
+      "jd_id": "JD-46",
+      "company": "蚂蚁集团",
+      "title": "蚂蚁集团-大模型 Benchmark 与评测体系工程师 / 专家-杭州/北京",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "agent",
+        "safety",
+        "multimodal",
+        "data",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.64375,
+      "conditional_score": 0.7357142857142858
+    },
+    {
+      "jd_id": "JD-47",
+      "company": "蚂蚁集团",
+      "title": "蚂蚁集团-垂类模型评测科学家-北京/杭州/上海【AGI专项】",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "metric",
+        "agent",
+        "calibration",
+        "safety",
+        "code",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.675,
+      "conditional_score": 0.7714285714285715
+    },
+    {
+      "jd_id": "JD-48",
+      "company": "蚂蚁集团",
+      "title": "蚂蚁集团-模型与评测算法专家-北京/杭州【CIO技术】",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "metric",
+        "agent",
+        "calibration",
+        "code",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.7000000000000001,
+      "conditional_score": 0.8166666666666668
+    },
+    {
+      "jd_id": "JD-49",
+      "company": "蚂蚁集团",
+      "title": "蚂蚁集团-Agent 评测研发工程师-健康事业群",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "agent",
+        "calibration",
+        "safety",
+        "code",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.7111111111111111,
+      "conditional_score": 0.8
+    },
+    {
+      "jd_id": "JD-50",
+      "company": "蚂蚁集团",
+      "title": "蚂蚁集团-语音大模型评测工程师-健康事业群",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "agent",
+        "safety",
+        "multimodal",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.7000000000000001,
+      "conditional_score": 0.8166666666666668
+    },
+    {
+      "jd_id": "JD-51",
+      "company": "蚂蚁集团",
+      "title": "【Plan A】大模型动态评测与评测诊断方向（AGI蓝军）-27届",
+      "category": "core",
+      "level_kind": "campus",
+      "capabilities": [
+        "metric",
+        "agent",
+        "calibration",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.8166666666666668,
+      "conditional_score": 0.8166666666666668
+    },
+    {
+      "jd_id": "JD-52",
+      "company": "蚂蚁集团",
+      "title": "大模型评测研究实习生",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "multimodal",
+        "code",
+        "training",
+        "platform"
+      ],
+      "score": 0.38,
+      "conditional_score": 0.6333333333333333
+    },
+    {
+      "jd_id": "JD-53",
+      "company": "蚂蚁集团",
+      "title": "【蚂蚁星】多模态理解与生成评测算法研究（实习）",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "calibration",
+        "multimodal",
+        "platform"
+      ],
+      "score": 0.7714285714285715,
+      "conditional_score": 0.9
+    },
+    {
+      "jd_id": "JD-54",
+      "company": "蚂蚁集团",
+      "title": "智能体评测理论实习生",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "calibration",
+        "safety"
+      ],
+      "score": 0.875,
+      "conditional_score": 0.875
+    },
+    {
+      "jd_id": "JD-55",
+      "company": "蚂蚁集团",
+      "title": "【蚂蚁星】AI工程师-大模型评测-百灵-27届",
+      "category": "core",
+      "level_kind": "campus",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "agent",
+        "calibration",
+        "training",
+        "platform"
+      ],
+      "score": 0.8166666666666668,
+      "conditional_score": 0.8166666666666668
+    },
+    {
+      "jd_id": "JD-56",
+      "company": "蚂蚁集团",
+      "title": "财富AI Lab-大模型评测工程师",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "calibration",
+        "safety",
+        "multimodal",
+        "code",
+        "data",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.6791666666666667,
+      "conditional_score": 0.8150000000000001
+    },
+    {
+      "jd_id": "JD-57",
+      "company": "蚂蚁集团",
+      "title": "【蚂蚁星】AI工程师-大模型评测-27届",
+      "category": "core",
+      "level_kind": "campus",
+      "capabilities": [
+        "benchmark",
+        "agent",
+        "safety",
+        "multimodal",
+        "data",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.64375,
+      "conditional_score": 0.7357142857142858
+    },
+    {
+      "jd_id": "JD-58",
+      "company": "蚂蚁集团",
+      "title": "CTO-大模型-评测体系建设",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "safety",
+        "multimodal",
+        "code",
+        "training"
+      ],
+      "score": 0.4,
+      "conditional_score": 0.6666666666666666
+    },
+    {
+      "jd_id": "JD-59",
+      "company": "蚂蚁集团",
+      "title": "研究型实习生- 医疗大模型评测方案的研究和应用",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "calibration",
+        "multimodal",
+        "code",
+        "data",
+        "training"
+      ],
+      "score": 0.65625,
+      "conditional_score": 0.875
+    },
+    {
+      "jd_id": "JD-60",
+      "company": "蚂蚁集团",
+      "title": "【蚂蚁星】算法工程师-评测方向-大安全（实习）",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "platform"
+      ],
+      "score": 0.4,
+      "conditional_score": 0.4
+    },
+    {
+      "jd_id": "JD-61",
+      "company": "米哈游",
+      "title": "AI 模型评测专家 - 星布谷地",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "calibration",
+        "safety",
+        "code",
+        "data",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.740909090909091,
+      "conditional_score": 0.8150000000000001
+    },
+    {
+      "jd_id": "JD-62",
+      "company": "米哈游",
+      "title": "大模型-LLM Evaluation算法研究员",
+      "category": "core",
+      "level_kind": "campus",
+      "capabilities": [
+        "benchmark",
+        "judge",
+        "agent",
+        "safety",
+        "code",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.675,
+      "conditional_score": 0.7714285714285715
+    },
+    {
+      "jd_id": "JD-63",
+      "company": "米哈游",
+      "title": "大模型算法实习生（评测方向）",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "platform"
+      ],
+      "score": 0.7,
+      "conditional_score": 0.7
+    },
+    {
+      "jd_id": "JD-64",
+      "company": "米哈游",
+      "title": "LLM Evaluation算法实习生",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "code",
+        "data",
+        "training"
+      ],
+      "score": 0.7083333333333334,
+      "conditional_score": 0.85
+    },
+    {
+      "jd_id": "JD-65",
+      "company": "百川智能",
+      "title": "【源点顶尖人才计划】大模型算法工程师",
+      "category": "adjacent",
+      "level_kind": "campus",
+      "capabilities": [
+        "benchmark",
+        "agent",
+        "multimodal",
+        "longctx",
+        "data",
+        "training",
+        "platform"
+      ],
+      "score": 0.5214285714285715,
+      "conditional_score": 0.73
+    },
+    {
+      "jd_id": "JD-66",
+      "company": "滴滴",
+      "title": "大模型算法工程师-北京",
+      "category": "adjacent",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "agent",
+        "multimodal",
+        "longctx",
+        "code",
+        "training",
+        "platform"
+      ],
+      "score": 0.41428571428571426,
+      "conditional_score": 0.725
+    },
+    {
+      "jd_id": "JD-67",
+      "company": "小米",
+      "title": "顶尖应届-MiMo后训练Agent研究员-MiMo",
+      "category": "adjacent",
+      "level_kind": "campus",
+      "capabilities": [
+        "agent",
+        "code",
+        "platform"
+      ],
+      "score": 0.4666666666666666,
+      "conditional_score": 0.7
+    },
+    {
+      "jd_id": "JD-68",
+      "company": "小米",
+      "title": "大模型算法专家",
+      "category": "adjacent",
+      "level_kind": "social",
+      "capabilities": [
+        "metric",
+        "agent",
+        "multimodal",
+        "code",
+        "data",
+        "training",
+        "platform"
+      ],
+      "score": 0.5214285714285715,
+      "conditional_score": 0.73
+    },
+    {
+      "jd_id": "JD-69",
+      "company": "小米",
+      "title": "大模型agent算法工程师",
+      "category": "adjacent",
+      "level_kind": "campus",
+      "capabilities": [
+        "agent",
+        "multimodal",
+        "data",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.6083333333333333,
+      "conditional_score": 0.73
+    },
+    {
+      "jd_id": "JD-70",
+      "company": "小米",
+      "title": "顶尖应届-具身大模型算法研究员-具身模型与应用部",
+      "category": "adjacent",
+      "level_kind": "campus",
+      "capabilities": [
+        "benchmark",
+        "agent",
+        "calibration",
+        "multimodal",
+        "platform"
+      ],
+      "score": 0.6799999999999999,
+      "conditional_score": 0.85
+    }
+  ],
+  "external_dependency": {
+    "code": {
+      "src_files": 8,
+      "src_lines": 1870,
+      "upstream_import_files": [
+        "agent.py",
+        "optimize.py"
+      ],
+      "upstream_import_lines": 363,
+      "upstream_import_share": 0.19411764705882353,
+      "vendored_files": 0,
+      "vendored_lines": 0,
+      "tests_lines": 620
+    },
+    "runtime_roles": [
+      {
+        "role": "环境、任务、官方评分、模拟用户",
+        "provider": "τ-bench v1.0.1"
+      },
+      {
+        "role": "被测 Agent 决策循环",
+        "provider": "DeepAgents"
+      },
+      {
+        "role": "提示优化与候选搜索",
+        "provider": "GEPA"
+      },
+      {
+        "role": "六层评分、证据校验、归因与报告",
+        "provider": "本项目"
+      },
+      {
+        "role": "LoRA SFT 执行",
+        "provider": "LlamaFactory（未运行）"
+      }
+    ],
+    "estimates": [
+      {
+        "source": "τ-bench v1.0.1",
+        "what": "零售环境、114 任务、政策、数据库、模拟用户、官方 reward；agent.py 以 217 行适配",
+        "share": 26,
+        "evidence": "external/tau-bench 固定 commit；官方 evaluator 与 user simulator 直接运行"
+      },
+      {
+        "source": "DeepAgents",
+        "what": "Agent 循环、消息状态、middleware；一处 create_deep_agent 接线",
+        "share": 10,
+        "evidence": "agent.py 只做工具过滤、会话桥接与中断，不重写 agent loop"
+      },
+      {
+        "source": "GEPA",
+        "what": "optimize 循环、反思器、候选搜索；146 行 adapter",
+        "share": 9,
+        "evidence": "gepa.optimize 直接调用；候选选择与预算边界为本项目补充"
+      },
+      {
+        "source": "淘宝文章",
+        "what": "六层判定、人工校准、修复回归闭环；落到 rubrics/retail.yaml",
+        "share": 9,
+        "evidence": "方法来源；六层顺序、证据契约与离线实现为本项目工作"
+      },
+      {
+        "source": "JudgeLM",
+        "what": "专用 Judge SFT、评分偏差；SFT 配置导出",
+        "share": 4,
+        "evidence": "方法借鉴；通用标签未当作零售金标"
+      },
+      {
+        "source": "AgentDebug",
+        "what": "失败分类 → 定位 → 可执行纠错反馈",
+        "share": 3.5,
+        "evidence": "方法映射；未复用其任务、架构或数据"
+      },
+      {
+        "source": "Agentic CLEAR",
+        "what": "system / trace / node 三粒度",
+        "share": 2.5,
+        "evidence": "方法映射；不移植其 UI 平台"
+      },
+      {
+        "source": "AgentRewardBench",
+        "what": "评分器独立校验、失败误放行与弃判统计",
+        "share": 2.5,
+        "evidence": "盲标与 Judge 校准的方法依据"
+      },
+      {
+        "source": "AgentEval",
+        "what": "步骤依赖与错误传播（当前未建 DAG）",
+        "share": 1.5,
+        "evidence": "仅设计参考；不声称实现 DAG 根因分析"
+      },
+      {
+        "source": "Who&When",
+        "what": "归因标注与验证；区分候选归因和已验证根因",
+        "share": 1.5,
+        "evidence": "仅设计参考；当前为单 Agent，不复用其 who 准确率"
+      },
+      {
+        "source": "LlamaFactory",
+        "what": "四卡 LoRA SFT 执行与配置格式",
+        "share": 2.5,
+        "evidence": "只导出配置与脚本；训练尚未执行"
+      },
+      {
+        "source": "Qwen3-4B",
+        "what": "Judge 底座模型",
+        "share": 1,
+        "evidence": "默认底座；权重不分发，训练尚未执行"
+      },
+      {
+        "source": "DSPy",
+        "what": "GEPA 集成与模块化优化的方法对照",
+        "share": 0.5,
+        "evidence": "仅引用与版本记录，不进入运行路径"
+      },
+      {
+        "source": "AWM",
+        "what": "合成环境的可执行性与质量门槛",
+        "share": 0.5,
+        "evidence": "仅扩展设想；未生成环境、未训练"
+      },
+      {
+        "source": "自研",
+        "what": "六层 rubric、证据契约、划分隔离、盲标、统计报告、预算门禁、SFT 导出",
+        "share": 26,
+        "evidence": "src 1870 行、tests 606 行；其中 80.6% 模块不 import 上游框架"
+      }
+    ],
+    "estimate_total_external": 74,
+    "estimate_note": "Normalised capability-share estimate, +/-3-5pp per row; code share is measured separately."
+  }
+}

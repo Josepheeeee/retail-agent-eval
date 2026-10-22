@@ -78,6 +78,7 @@ $py = Join-Path $PWD '.venv\Scripts\python.exe'
 | 个人改进与创新证据边界 | [CONTRIBUTIONS.md](docs/CONTRIBUTIONS.md) |
 | 项目记忆、已验证事实与下一步 | [STATE.md](docs/STATE.md) |
 | 70 条 JD 原文、30 家公司来源清单与能力映射 | [JD_RAW.md](docs/JD_RAW.md)、[jd_sources.json](data/manifests/jd_sources.json)、[JD_ANALYSIS.md](docs/JD_ANALYSIS.md) |
+| 70 条 JD 的能力匹配、差距与外部依赖盘点 | [JD_FIT.md](docs/JD_FIT.md)、[jd_fit.json](data/manifests/jd_fit.json)、[分析脚本](scripts/analyze_jd_fit.py) |
 
 ## 快速开始：完整安装与离线闭环
 
@@ -222,7 +223,7 @@ pool只合并单一live划分的完整采集run，拒绝重复trace_id并保存�
 
 ## 当前状态
 
-当前已验证：固定样例闭环、无泄漏任务划分、真实DeepAgents SDK与零售工具往返、GEPA公开API离线适配、五个官方任务的脚本模型端到端适配、评分中断保留轨迹、错误类型/最早事件契约、人工完整标签保留、维度与定位指标、冗长干扰检查、Judge SFT 配置导出、JD 30家公司来源与70条逐项复核。**真实API五任务、主实验、人工480标注与SFT仍未完成。**具体测试结果和运行记录见[STATE.md](docs/STATE.md)。
+当前已验证：固定样例闭环、无泄漏任务划分、真实DeepAgents SDK与零售工具往返、GEPA公开API离线适配、五个官方任务的脚本模型端到端适配、评分中断保留轨迹、错误类型/最早事件契约、人工完整标签保留、维度与定位指标、冗长干扰检查、Judge SFT 配置导出、JD 30家公司来源、70条逐项复核与量化匹配。**真实API五任务、主实验、人工480标注与SFT仍未完成。**具体测试结果和运行记录见[STATE.md](docs/STATE.md)。
 
 ## GitHub
 

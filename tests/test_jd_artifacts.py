@@ -43,3 +43,17 @@ def test_capability_stats_prioritise_intern_and_campus():
     assert stats["category_counts"] == {"core": 51, "adjacent": 18, "unverified": 1}
     assert stats["capability_stats"]["benchmark"]["intern_campus"] >= 30
     assert sum(values["all"] for values in stats["capability_stats"].values()) > 70
+
+
+def test_jd_fit_matches_review_and_declares_its_limits():
+    fit = json.loads((ROOT / "data/manifests/jd_fit.json").read_text(encoding="utf-8"))
+    review = json.loads((ROOT / "data/manifests/jd_review.json").read_text(encoding="utf-8"))
+    assert len(fit["records"]) == 70
+    assert {row["jd_id"] for row in fit["records"]} == {row["jd_id"] for row in review["records"]}
+    capabilities = {cap for row in review["records"] for cap in row["capabilities"]}
+    assert set(fit["coverage_levels"]) == capabilities
+    recomputed = sum(row["score"] for row in fit["records"]) / 70
+    assert abs(recomputed - fit["summary"]["mean_all"]) < 1e-9
+    assert fit["external_dependency"]["code"]["vendored_lines"] == 0
+    assert abs(sum(row["share"] for row in fit["external_dependency"]["estimates"]) - 100) < 1e-9
+    assert "design coverage" in fit["scope"]["note"].lower()
