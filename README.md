@@ -1,32 +1,20 @@
-# 面向零售服务 Agent 的分层评测与失败归因驱动优化
+﻿# 面向零售服务 Agent 的分层评测与失败归因驱动优化
 
 以淘宝评测实践为流程参考，以 DeepAgents 为被测对象，以 τ-bench 零售任务为可执行环境，检验分层失败反馈是否帮助 GEPA 在相同预算下改进 Agent。
 
 **当前：工程实现与离线闭环；真实 API 实验、人工金标和远端 SFT 尚未完成。不提供未经测量的提升数字。**
 
-## 从这里开始
+## 项目目的
 
-本机环境与参考源码已经建立，下一步先读[真实五任务操作指南](docs/NEXT_STEPS.md)，配置.env并验收接口；无需重新搭建文件夹。原批准计划已归档到[PLAN.md](docs/PLAN.md)，每一项的实现位置、验证证据和待执行内容见[PLAN_CHECKLIST.md](docs/PLAN_CHECKLIST.md)。**“工程入口齐备”不等于“真实研究实验完成”。**
+业务用途是零售服务 Agent 的发布前回归：在订单修改、取消、退换货中识别执行失败、未经确认写入、重复交易、回复失实和隐私违规，并判断修复能否泛化。
 
-```powershell
-Set-Location C:\Users\33969\Documents\retail-agent-eval
-$py = Join-Path $PWD '.venv\Scripts\python.exe'
-& $py -m retail_eval.run doctor
-& $py -m retail_eval.run demo
-```
+| 研究问题 | 主终点/证据 | 不声称 |
+|---|---|---|
+| 分层 Judge 是否可信？ | 人工金标上的总体/维度/定位/校准指标 | 不把 Judge 自己当人工真值 |
+| 可定位反馈能否改进 Agent？ | 同预算 A3−A2 官方 reward 差值、任务/种子配对 CI | 不预填收益，不挑最好种子 |
+| 小 Judge 是否值得 SFT？ | J0–J4 同轨迹 2×2、强模型参照、成本/校准 | 不用 test 调阈值，不混模型 |
 
-然后按操作指南填写模型角色，运行`collect --split train --group A0 --limit 5 --trials 1`，核对5条记录与benchmark_complete；允许业务失败，不允许用缺失评分或接口异常冒充完成。
-
-| 交付内容 | 阅读位置 |
-|---|---|
-| 工程、快速开始与命令 | 本文件、[AGENTS.md](AGENTS.md) |
-| 批准计划归档、逐项验收 | [PLAN.md](docs/PLAN.md)、[PLAN_CHECKLIST.md](docs/PLAN_CHECKLIST.md) |
-| 下一步具体操作与实验登记 | [NEXT_STEPS.md](docs/NEXT_STEPS.md)、[PREREGISTRATION.md](docs/PREREGISTRATION.md) |
-| 完整参考项目与论文对应关系 | [REFERENCES.md](docs/REFERENCES.md)、[引用锁](references.lock.yaml) |
-| 目的、假设、主实验/消融/Judge/统计与验收 | [EXPERIMENTS.md](docs/EXPERIMENTS.md) |
-| 个人改进与创新证据边界 | [CONTRIBUTIONS.md](docs/CONTRIBUTIONS.md) |
-| 项目记忆、已验证事实与下一步 | [STATE.md](docs/STATE.md) |
-| 70 条 JD 原文、30 家公司来源清单与能力映射 | [JD_RAW.md](docs/JD_RAW.md)、[jd_sources.json](data/manifests/jd_sources.json)、[JD_ANALYSIS.md](docs/JD_ANALYSIS.md) |
+真实公司数据、流量分布和上线收益不在验证范围。
 
 ## 架构与职责
 
@@ -67,7 +55,31 @@ docs/          实验、引用、贡献及项目状态
 tests/         契约、隔离、统计、GEPA和τ适配检查
 ```
 
-## 本地安装与离线闭环
+## 快速开始：离线入口
+
+本机环境与参考源码已经建立，下一步先读[真实五任务操作指南](docs/NEXT_STEPS.md)，配置.env并验收接口；无需重新搭建文件夹。原批准计划已归档到[PLAN.md](docs/PLAN.md)，每一项的实现位置、验证证据和待执行内容见[PLAN_CHECKLIST.md](docs/PLAN_CHECKLIST.md)。**“工程入口齐备”不等于“真实研究实验完成”。**
+
+```powershell
+Set-Location C:\Users\33969\Documents\retail-agent-eval
+$py = Join-Path $PWD '.venv\Scripts\python.exe'
+& $py -m retail_eval.run doctor
+& $py -m retail_eval.run demo
+```
+
+然后按操作指南填写模型角色，运行`collect --split train --group A0 --limit 5 --trials 1`，核对5条记录与benchmark_complete；允许业务失败，不允许用缺失评分或接口异常冒充完成。
+
+| 交付内容 | 阅读位置 |
+|---|---|
+| 工程、快速开始与命令 | 本文件、[AGENTS.md](AGENTS.md) |
+| 批准计划归档、逐项验收 | [PLAN.md](docs/PLAN.md)、[PLAN_CHECKLIST.md](docs/PLAN_CHECKLIST.md) |
+| 下一步具体操作与实验登记 | [NEXT_STEPS.md](docs/NEXT_STEPS.md)、[PREREGISTRATION.md](docs/PREREGISTRATION.md) |
+| 完整参考项目与论文对应关系 | [REFERENCES.md](docs/REFERENCES.md)、[引用锁](references.lock.yaml) |
+| 目的、假设、主实验/消融/Judge/统计与验收 | [EXPERIMENTS.md](docs/EXPERIMENTS.md) |
+| 个人改进与创新证据边界 | [CONTRIBUTIONS.md](docs/CONTRIBUTIONS.md) |
+| 项目记忆、已验证事实与下一步 | [STATE.md](docs/STATE.md) |
+| 70 条 JD 原文、30 家公司来源清单与能力映射 | [JD_RAW.md](docs/JD_RAW.md)、[jd_sources.json](data/manifests/jd_sources.json)、[JD_ANALYSIS.md](docs/JD_ANALYSIS.md) |
+
+## 快速开始：完整安装与离线闭环
 
 Windows PowerShell、Python **3.12**。下面命令在项目根目录逐行执行。已有.venv时从设置`$py`开始，无需激活脚本或修改执行策略。
 
@@ -77,7 +89,7 @@ py -3.12 -m venv .venv
 $py = Join-Path $PWD '.venv\Scripts\python.exe'
 & $py -m pip install -r requirements.lock.txt
 & $py scripts/fetch_references.py
-& $py -m pip install --no-deps -e external/tau-bench -e .
+& $py -m pip install --no-deps --no-build-isolation -e external/tau-bench -e .
 & $py -m pip check
 & $py -m retail_eval.run prepare-data
 & $py -m retail_eval.run doctor
@@ -110,7 +122,7 @@ if (-not (Test-Path -LiteralPath '.env')) {
 
 运行快照不包含API密钥。Agent只获得政策、业务工具和当前任务会话，不能读取本地开发文件或评分答案。τ的默认开场白属于当前任务初始历史，保留它不等于跨任务记忆。
 
-## 基线、GEPA与最终测试
+## 实验步骤：基线、GEPA与最终测试
 
 先在[实验预注册](docs/EXPERIMENTS.md)中登记实际模型版本、预算与选择规则。
 
@@ -202,13 +214,15 @@ pool只合并单一live划分的完整采集run，拒绝重复trace_id并保存�
 
 有金标时生成总体混淆矩阵、六层维度一致率、最早错误事件/轮次定位、错误类型准确率、ECE/Brier、证据直接支持率、同覆盖率数据与可靠性—耗时—Token对比；没有金标时不输出伪造准确率。真实失败误放行、弃判、解析失败和接口异常分别统计。阈值只由dev确定；test曲线只描述，不用来挑阈值。Agent实验使用原固定Judge，Judge矩阵单独汇报。
 
-## 产物、异常与当前结果
+## 产物位置与异常
 
 每次run保存manifest、代码/依赖版本、输入与配置快照，raw执行、官方评分和原始Judge回复，清洗记录、分层Grade和报告。error保留类型及可用执行轨迹，避免将基础设施故障算为正常业务失败。官方NL遗漏断言/返回非布尔值时标记异常；这是格式完整性校验，不修改业务奖励定义。
 
 优化另有候选、反思、metric_ledger、GEPA状态、selected_prompt.md和optimization.png。开发曲线不是测试曲线。正式比较拒绝未完成运行；中断后保留原run，修复后创建新run，当前版本不自动断点续跑。runs默认不提交Git，公开结果时另行脱敏并选择性导出。
 
-当前已验证：固定样例闭环、无泄漏任务划分、真实DeepAgents SDK与零售工具往返、GEPA公开API离线适配、五个官方任务的脚本模型端到端适配、评分中断保留轨迹、错误类型/最早事件契约、人工完整标签保留、维度与定位指标、Judge SFT 配置导出、JD 30家公司来源与70条逐项复核。**真实API五任务、主实验、人工480标注与SFT仍未完成。**具体测试结果和运行记录见[STATE.md](docs/STATE.md)。
+## 当前状态
+
+当前已验证：固定样例闭环、无泄漏任务划分、真实DeepAgents SDK与零售工具往返、GEPA公开API离线适配、五个官方任务的脚本模型端到端适配、评分中断保留轨迹、错误类型/最早事件契约、人工完整标签保留、维度与定位指标、冗长干扰检查、Judge SFT 配置导出、JD 30家公司来源与70条逐项复核。**真实API五任务、主实验、人工480标注与SFT仍未完成。**具体测试结果和运行记录见[STATE.md](docs/STATE.md)。
 
 ## GitHub
 
