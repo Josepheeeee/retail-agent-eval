@@ -1,4 +1,4 @@
-﻿# 计划逐项验收表
+# 计划逐项验收表
 
 核对日期：2026-10-21（Asia/Shanghai）。依据[批准计划](PLAN.md)、当前源码、固定参考树和本机实际验证。
 
@@ -97,7 +97,9 @@
 | 维度/定位/校准指标 | 已验证 | dimension_metrics、localization_metrics、calibration_metrics、evidence_quality；测试 |
 | 标签来源分开 | 已验证 | 官方reward、Judge、human、teacher分别统计；teacher只作训练摘要 |
 | Judge SFT 2,000条上限与三种子配置 | 已验证 | export_sft max_trajectories、judge_sft_config、42/43/44 YAML |
-| 隔离/完整标签/定位/训练导出/聚合测试 | 已验证 | tests/test_research_contracts.py 6项；总计35 passed |
+| 隔离/完整标签/定位/训练导出/聚合测试 | 已验证 | tests/test_research_contracts.py 8项；总计37 passed |
+| 语义保持的冗长干扰检查 | 已验证 | data.verbosity_variant、report.verbosity_consistency、`judge-robustness` |
+| 远程API预算门禁 | 已验证 | configs budget.max_task_runs、run.assert_api_budget；未登记即停止 |
 | JD 30家公司来源清单 | 已验证 | data/manifests/jd_sources.json；30家、70条、4条排除、11家缺失、6家重检 |
 | 70条逐项复核与能力统计 | 已验证 | docs/JD_ANALYSIS.md、jd_review.json、jd_capability_stats.json |
 | Linux 训练/推理/评测脚本 | 已交付；未在H20实跑 | scripts/linux/*.sh、README |

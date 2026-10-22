@@ -21,6 +21,12 @@ max_metric_calls: 150
 max_feedback_chars: 12000
 bootstrap_samples: 10000
 annotation_targets: {train: 240, dev: 80, test: 160}
+budget:
+  max_task_runs: 0
+  price_input_per_million: null
+  price_output_per_million: null
+  currency: USD
+  note: 0 means local-only; a remote endpoint must set max_task_runs before any batch run.
 judge_sft_max_trajectories: 2000
 judge_sft_base: Qwen/Qwen3-4B
 judge_sft_seeds: [42, 43, 44]

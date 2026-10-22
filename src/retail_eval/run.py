@@ -16,9 +16,9 @@ import yaml
 from dotenv import load_dotenv
 
 from .data import (JUDGE_SFT_SEEDS, assert_membership, blind_packets, clean_trace, export_sft,
-                   judge_sft_config, prepare_splits, unblind_annotations)
+                   judge_sft_config, prepare_splits, unblind_annotations, verbosity_variant)
 from .judge import ModelEndpoint, fixture_grade, judge_trace
-from .report import compare_judges, judge_metrics, make_report, paired_bootstrap
+from .report import compare_judges, judge_metrics, make_report, paired_bootstrap, verbosity_consistency
 from .schema import Grade, Trace, digest, read_jsonl, validate_grade, write_json, write_jsonl
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -69,6 +69,18 @@ def split_manifest():
 
 def endpoints(roles):
     return {role: ModelEndpoint.from_env(role).public() for role in roles}
+
+
+def assert_api_budget(cfg, planned_task_runs, public_endpoints):
+    """Stop before a paid batch when the run budget is not registered."""
+    budget = cfg.get("budget", {})
+    limit = int(budget.get("max_task_runs", 0) or 0)
+    if limit and planned_task_runs > limit:
+        raise ValueError(f"registered budget exceeded: {planned_task_runs} > {limit} task runs")
+    remote = [role for role, value in public_endpoints.items()
+              if not any(local in value["base_url"] for local in ("127.0.0.1", "localhost", "0.0.0.0"))]
+    if remote and not limit:
+        raise ValueError("remote endpoint requires configs/experiment.yaml budget.max_task_runs before batch runs")
 
 
 def new_run(kind, cfg, roles=(), prompt=None):
@@ -185,6 +197,8 @@ def cli_parser():
     q.add_argument("--generic", action="store_true")
     q = sub.add_parser("judge-matrix"); q.add_argument("--traces", type=Path, required=True)
     q.add_argument("--gold", type=Path)
+    q = sub.add_parser("judge-robustness"); q.add_argument("--traces", type=Path, required=True)
+    q.add_argument("--role", default="judge"); q.add_argument("--version", default="verbosity-v1")
     q = sub.add_parser("report"); q.add_argument("--run", type=Path, required=True)
     q.add_argument("--gold", type=Path); q.add_argument("--coverage", type=float, default=1.0)
     q = sub.add_parser("compare"); q.add_argument("--a", nargs="+", type=Path, required=True)
@@ -252,7 +266,7 @@ def execute(args, cfg, rubric):
         m = split_manifest()
         prompt = (ROOT / cfg["agent_prompt"]).read_text(encoding="utf-8")
         roles = ["agent", "user", "judge"] + (["reflection"] if cmd == "optimize" else [])
-        endpoints(roles)  # Fail before creating an empty run if credentials are missing.
+        public = endpoints(roles)  # Fail before creating an empty run if credentials are missing.
         if cmd == "collect":
             if args.group not in cfg["groups"]:
                 raise ValueError("unknown registered group")
@@ -273,6 +287,8 @@ def execute(args, cfg, rubric):
                 raise ValueError("trial count out of range")
             if args.limit is not None and args.limit < 1:
                 raise ValueError("limit must be positive")
+            ids = m["splits"][args.split][:args.limit]
+            assert_api_budget(cfg, len(ids) * args.trials, public)
             output, manifest = new_run("collect", cfg, roles, prompt)
             if frozen and protocol_signature(manifest) != frozen["protocol_signature"]:
                 finish(output, manifest, status="rejected")
@@ -280,7 +296,6 @@ def execute(args, cfg, rubric):
             manifest.update(group=args.group, split=args.split, optimization_seed=args.optimization_seed,
                             frozen_candidate=frozen)
             write_json(output / "manifest.json", manifest)
-            ids = m["splits"][args.split][:args.limit]
             traces, grades = [], []
             try:
                 for task_id in ids:
@@ -297,6 +312,7 @@ def execute(args, cfg, rubric):
                 raise
             print(output); return
         from .optimize import RetailAdapter, optimize_prompt
+        assert_api_budget(cfg, cfg["max_metric_calls"], public)
         output, manifest = new_run("optimize", cfg, roles, prompt)
         manifest.update(group=args.group, optimization_seed=args.seed, split="dev")
         write_json(output / "manifest.json", manifest)
@@ -343,6 +359,31 @@ def execute(args, cfg, rubric):
         if gold is not None:
             compare_judges(all_grades, gold, output / "comparison")
         finish(output, manifest, status="complete")
+        print(output); return
+    if cmd == "judge-robustness":
+        traces = traces_at(args.traces)
+        if not traces or any(t.source != "live" for t in traces):
+            raise ValueError("verbosity robustness requires live trajectories")
+        assert_membership(traces, split_manifest())
+        endpoint = ModelEndpoint.from_env(args.role)
+        output, manifest = new_run("judge-robustness", cfg, [args.role])
+        prompt = (ROOT / cfg["judge_prompt"]).read_text(encoding="utf-8")
+        originals, variants = [], []
+        for trace in traces:
+            variant = verbosity_variant(trace)
+            original_grade, raw_a = judge_trace(trace, rubric, prompt, endpoint, cfg, args.version + "-original")
+            variant_grade, raw_b = judge_trace(variant, rubric, prompt, endpoint, cfg, args.version + "-verbose")
+            originals.append(original_grade); variants.append(variant_grade)
+            write_json(output / "raw" / (digest(trace.trace_id) + ".original.json"), raw_a)
+            write_json(output / "raw" / (digest(trace.trace_id) + ".verbose.json"), raw_b)
+        write_jsonl(output / "traces.jsonl", traces)
+        write_jsonl(output / "variants.jsonl", [verbosity_variant(t) for t in traces])
+        write_jsonl(output / "grades.jsonl", originals)
+        write_jsonl(output / "grades_variant.jsonl", variants)
+        summary = verbosity_consistency(originals, variants)
+        write_json(output / "verbosity.json", summary)
+        finish(output, manifest, status="complete", input_traces_sha256=digest([t.model_dump() for t in traces]),
+               verbosity=summary)
         print(output); return
     if cmd == "report":
         traces = traces_at(args.run / "traces.jsonl")

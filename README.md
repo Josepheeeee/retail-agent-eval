@@ -99,6 +99,8 @@ if (-not (Test-Path -LiteralPath '.env')) {
 
 在本机编辑.env，填写API_KEY（或各角色API_KEY）、包含`/v1`的端点、AGENT_MODEL、USER_MODEL、JUDGE_MODEL；优化时再填REFLECTION_MODEL。支持OpenAI兼容Chat Completions；Agent必须支持tool calls，Judge需支持JSON object。不要把密钥发到聊天里或写进YAML。ChatGPT/Codex订阅与本地模型API配置分开管理，doctor只检查此工程的角色配置。
 
+商业/远程端点还需在`configs/experiment.yaml`的`budget.max_task_runs`登记本次批量最多任务运行数（0表示仅本地）；未登记时批跑直接停止。价格字段只用于成本报告，实际调用/Token/耗时写入run manifest；服务端不返回usage时记为未知。
+
 ```powershell
 & $py -m retail_eval.run doctor
 & $py -m retail_eval.run collect --split train --group A0 --limit 5 --trials 1
@@ -193,6 +195,9 @@ pool只合并单一live划分的完整采集run，拒绝重复trace_id并保存�
 
 # 对既有run/Judge子目录添加独立金标分析
 & $py -m retail_eval.run report --run runs/替换为Judge矩阵目录/J3 --gold data/annotations/test_gold.jsonl --coverage 0.8
+
+# 语义保持的冗长干扰一致性检查（同一Judge、同一轨迹事实，仅重述最终回复）
+& $py -m retail_eval.run judge-robustness --traces data/raw/frozen_judge_test_pool.jsonl --role judge --version verbosity-v1
 ```
 
 有金标时生成总体混淆矩阵、六层维度一致率、最早错误事件/轮次定位、错误类型准确率、ECE/Brier、证据直接支持率、同覆盖率数据与可靠性—耗时—Token对比；没有金标时不输出伪造准确率。真实失败误放行、弃判、解析失败和接口异常分别统计。阈值只由dev确定；test曲线只描述，不用来挑阈值。Agent实验使用原固定Judge，Judge矩阵单独汇报。

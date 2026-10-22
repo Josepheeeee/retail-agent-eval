@@ -7,7 +7,7 @@
 - 批准计划完整归档：docs/PLAN.md；逐项状态、文件证据与阶段验收：docs/PLAN_CHECKLIST.md。
 - README顶部新增当前阶段入口，docs/NEXT_STEPS.md给出使用现有环境、配置接口、五任务运行与结果核对、后续实验顺序和Git准备。
 - docs/PREREGISTRATION.md与docs/manual_revision.md为待填写模板；不是已经完成的正式登记或人工实验。
-- 本轮重新运行pytest：**35 passed，1个上游audioop弃用warning，约13秒**；pip check无依赖冲突。
+- 本轮重新运行pytest：**37 passed，1个上游audioop弃用warning，约13秒**；pip check无依赖冲突。
 - 本轮机器核对：34个必需文件存在、6个参考源码commit匹配且tracked文件干净、train54/dev20/test40共114个唯一任务；本轮新增文档链接检查结果记录在data/manifests/plan_audit.json。
 - doctor仍显示全部模型角色未配置；未发现完整正式优化run或正式test run。人工标注、SFT和研究结论不得标为完成。
 - 当前验收范围是工程/文档/离线闭环。整体研究计划明确标为未完成；下一阶段是配置接口并取得5任务真实API验收记录。
@@ -34,7 +34,7 @@
 - 批量收集、单一划分轨迹池、盲标导入/导出、train-only SFT及来源sidecar、J0–J4固定轨迹评分入口。
 - 版本表、成本及已知/缺失usage、官方评分成分、pass³、失败分布、混淆矩阵/同覆盖率分析、任务/种子配对Bootstrap、消融/第二模型的独立运行协议。
 - Grade新增error_type、earliest_error_event、attribution_uncertainty和逐层support；最早事件必须可见且被证据引用，unclassified/unknown不被强迫编造根因。
-- 人工标注导入保留六层标签、错误类型/位置、证据支持与review记录；报告新增总体+维度一致率、最早事件/轮次/层定位、错误类型准确率、ECE/Brier和证据直接支持率；teacher只作训练摘要。
+- 人工标注导入保留六层标签、错误类型/位置、证据支持与review记录；报告新增总体+维度一致率、最早事件/轮次/层定位、错误类型准确率、ECE/Brier和证据直接支持率；`judge-robustness`增加语义保持的冗长重述一致性检查；teacher只作训练摘要。
 - Judge SFT默认Qwen3-4B非思考、LoRA rank32/alpha64/lr1e-4/global batch16/len4096/1 epoch、种子42/43/44；`judge-sft-config`导出LlamaFactory配置，导出上限2,000条不同轨迹并报告实际数量。
 - 新增`docs/JD_ANALYSIS.md`、`data/manifests/jd_sources.json`（30家公司）与`jd_review.json`（70条逐项分类/能力标签）；6家缺失公司已重新检索并记录URL与结论。
 - README复现命令；REFERENCES完整项目/论文映射；EXPERIMENTS完整预注册与480盲标计划；CONTRIBUTIONS复现/个人实现/创新证据边界。
@@ -44,7 +44,7 @@
 
 | 检查 | 结果 |
 |---|---|
-| `.venv/Scripts/python.exe -m pytest -q` | **35 passed**；唯一warning来自τ语音模块导入的Python audioop弃用提示，当前文本实验通过 |
+| `.venv/Scripts/python.exe -m pytest -q` | **37 passed**；唯一warning来自τ语音模块导入的Python audioop弃用提示，当前文本实验通过 |
 | `python -m pip check` | No broken requirements found |
 | `python -m compileall -q src scripts` | 通过 |
 | `import dspy; dspy.GEPA` | DSPy3.4.1及GEPA集成可导入 |
@@ -64,7 +64,7 @@
 
 - 尚无已配置的模型 API；没有真实模型提升结果。
 - 人工 480 条标注、正式优化、消融、第二模型和 Judge SFT 均待实验执行。
-- 已配置仓库本地Git身份并推送到公开仓库`Josepheeeee/retail-agent-eval`（`main`，提交62a1d3d）；早期“未提交/未推送”的记录已过时。
+- 已配置仓库本地Git身份并推送到公开仓库`Josepheeeee/retail-agent-eval`（`main`）；早期“未提交/未推送”的记录已过时。
 - 公开内容不含密钥、私有轨迹、权重或运行结果；真实实验产物仍需脱敏后单独发布。
 - 没有自动断点续跑；失败/中断run保留，修复后创建新run并记录重跑成本。
 - 证据ID存在的校验不等同于语义正确；cause是候选归因，仍需人工复核/修复重跑，严格因果主张需另做受控干预。

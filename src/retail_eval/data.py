@@ -71,6 +71,26 @@ def clean_trace(trace: Trace) -> Trace:
     return cleaned
 
 
+def verbosity_variant(trace: Trace) -> Trace:
+    """Semantics-preserving verbosity perturbation for Judge robustness.
+
+    The final assistant message is restated with the identical facts, prefixed
+    and suffixed with neutral restatement text. Tool events and all evidence IDs
+    are unchanged; this is a heuristic, not a semantic equivalence proof.
+    """
+    variant = trace.model_copy(deep=True)
+    variant.trace_id = trace.trace_id + "-verbose"
+    variant.metadata = {**trace.metadata, "verbosity_of": trace.trace_id,
+                        "perturbation": "final_assistant_restatement"}
+    for event in reversed(variant.events):
+        if event.role == "assistant" and event.content.strip() and not event.tool_calls:
+            original = event.content.strip()
+            event.content = (f"To restate the same outcome without adding facts: {original}\n\n"
+                             f"In other words, the observed outcome remains: {original}")
+            return variant
+    raise ValueError("trace has no non-empty final assistant message to restate")
+
+
 def blind_packets(traces: list[Trace], output: Path):
     if len({t.trace_id for t in traces}) != len(traces):
         raise ValueError("duplicate annotation trace IDs")

@@ -10,10 +10,11 @@ import json
 import pytest
 import yaml
 
-from retail_eval.data import blind_packets, export_sft, judge_sft_config, unblind_annotations
+from retail_eval.data import (blind_packets, export_sft, judge_sft_config, unblind_annotations,
+                              verbosity_variant)
 from retail_eval.judge import fixture_grade
 from retail_eval.report import (calibration_metrics, dimension_metrics, localization_metrics,
-                                make_report)
+                                make_report, verbosity_consistency)
 from retail_eval.run import ROOT
 from retail_eval.schema import Trace, read_jsonl, validate_grade
 
@@ -134,6 +135,33 @@ def test_judge_sft_export_cap_and_three_seed_configs(labelled, tmp_path):
         assert config["seed"] == seed
     with pytest.raises(ValueError, match="42/43/44"):
         judge_sft_config(45, configs, target)
+
+
+def test_verbosity_variant_preserves_evidence_and_measures_drift(labelled):
+    traces, grades = labelled
+    trace = _first(traces, grades, lambda g: g.overall in {"pass", "fail"})
+    variant = verbosity_variant(trace)
+    assert variant.trace_id.endswith("-verbose")
+    assert variant.metadata["verbosity_of"] == trace.trace_id
+    assert {e.id for e in variant.events} == {e.id for e in trace.events}
+    assert len(variant.events[-1].content) > len(trace.events[-1].content) if trace.events[-1].role == "assistant" else True
+    original = grades[trace.trace_id]
+    same = original.model_copy(deep=True)
+    assert verbosity_consistency([original], [same])["overall_agreement"] == 1
+    drifted = same.model_copy(deep=True, update={"overall": "abstain" if same.overall != "abstain" else "pass"})
+    assert verbosity_consistency([original], [drifted])["overall_agreement"] == 0
+
+
+def test_remote_budget_must_be_registered():
+    from retail_eval.run import assert_api_budget
+    remote = {"agent": {"base_url": "https://api.example.com/v1"}}
+    with pytest.raises(ValueError, match="budget"):
+        assert_api_budget({"budget": {"max_task_runs": 0}}, 5, remote)
+    assert_api_budget({"budget": {"max_task_runs": 10}}, 5, remote)
+    with pytest.raises(ValueError, match="exceeded"):
+        assert_api_budget({"budget": {"max_task_runs": 4}}, 5, remote)
+    local = {"agent": {"base_url": "http://127.0.0.1:8000/v1"}}
+    assert_api_budget({"budget": {"max_task_runs": 0}}, 5, local)
 
 
 def test_teacher_labels_are_summarised_not_accuracy(labelled, tmp_path):

@@ -26,6 +26,8 @@ python scripts/fetch_references.py tau-bench    # 仅运行所需环境
 | [DSPy](https://github.com/stanfordnlp/dspy) | 661b2f1a2521 | MIT | GEPA集成与模块化优化的参考；当前不重复包装DSPy优化循环 | `python -c "import dspy; print(dspy.GEPA)"`；独立例子按上游README在另一个环境运行 |
 | [GEPA](https://github.com/gepa-ai/gepa) | 8f287de942f4 | MIT | GEPAAdapter、EvaluationBatch、gepa.optimize默认反思器；optimize.py | `retail-eval optimize --group A2 --seed 42`，A3更换反馈组织 |
 | [JudgeLM](https://github.com/baaivision/JudgeLM) | 00c45169de47 | Apache-2.0 | 专用Judge SFT、教师偏差与评分方法参考；不直接用原通用标签作零售金标 | 本地`export-sft`后远端训练；上游README和scripts/train_judgelm是原方法训练入口，依赖/底座与本工程分离 |
+| [LlamaFactory](https://github.com/hiyouga/LlamaFactory) | c683e59edd8f | Apache-2.0 | 四卡LoRA SFT执行；本项目只生成数据/配置/来源/接回流程 | `retail-eval judge-sft-config`导出YAML；`scripts/linux/train_judge.sh`在H20执行 |
+| [Qwen3-4B](https://huggingface.co/Qwen/Qwen3-4B) | record-at-serve | 以模型卡为准 | 小Judge默认底座，非思考模式，LoRA SFT；不声称其为本项目训练的基础模型 | 训练前记录HF revision与tokenizer revision；权重不随仓库分发 |
 | [Agent World Model](https://github.com/Snowflake-Labs/agent-world-model) | 85e322f69279 | 锁定根目录未声明许可证 | 可执行合成环境与质量核验参考；首版不运行环境生成/RL | 扩展阶段在独立环境按上游README执行`uv sync --extra bench`及`awm bench --mode tau2 ...`，需额外模型/子模块 |
 
 DeepAgents是高Star被测对象，DSPy是高Star优化生态参考；不以Star证明评测有效性。选题时核验的2026-10-21快照：DeepAgents约30.5k、DSPy约38.7k；数值会变，最终公开展示应标注日期或重新查官方仓库。

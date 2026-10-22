@@ -217,6 +217,28 @@ def evidence_quality(grades: list[Grade]):
     }
 
 
+def verbosity_consistency(original: list[Grade], variant: list[Grade]):
+    """Verdict drift under a semantics-preserving verbose restatement."""
+    if len(original) != len(variant):
+        raise ValueError("verbosity check needs aligned original/variant grades")
+    if len({g.trace_id for g in original}) != len(original):
+        raise ValueError("duplicate original grade")
+    pairs = list(zip(original, variant))
+    fail_n = sum(a.overall == "fail" for a, _ in pairs)
+    decided = sum(a.overall in {"pass", "fail"} for a, _ in pairs)
+    return {
+        "n": len(pairs),
+        "overall_agreement": sum(a.overall == b.overall for a, b in pairs) / len(pairs) if pairs else None,
+        "decision_agreement": (sum(a.overall in {"pass", "fail"} and a.overall == b.overall for a, b in pairs) / decided)
+        if decided else None,
+        "fail_recall_under_verbosity": (sum(a.overall == "fail" and b.overall == "fail" for a, b in pairs) / fail_n)
+        if fail_n else None,
+        "abstain_drift": sum(a.overall != "abstain" and b.overall == "abstain" for a, b in pairs),
+        "parse_error_drift": sum(a.overall != "parse_error" and b.overall == "parse_error" for a, b in pairs),
+        "note": "Heuristic neutral restatement; it reduces but does not eliminate verbosity differences.",
+    }
+
+
 def paired_bootstrap(a: list[Trace], b: list[Trace], samples=10000, seed=2026, trials=3):
     """Resample optimization seeds and paired tasks; trials stay within task cells."""
     if samples < 1:
