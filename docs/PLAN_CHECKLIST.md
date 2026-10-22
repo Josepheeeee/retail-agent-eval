@@ -10,7 +10,7 @@
 
 | 原计划要求 | 状态 | 文件位置/证据 |
 |---|---|---|
-| 独立目录、Git与依赖 | 已实现；Git提交待身份设置 | 根目录、pyproject.toml、.gitignore；codex/bootstrap，尚无remote |
+| 独立目录、Git与依赖 | 已验证 | 根目录、pyproject.toml、.gitignore；公开仓库`Josepheeeee/retail-agent-eval`，main |
 | Python3.12、兼容性与冻结 | 已验证 | .venv、requirements.lock.txt；pip check |
 | 原计划目录和模块 | 已实现 | 原目录逐项检查；src/retail_eval八个职责模块及__init__ |
 | 提示词/Rubric/配置分离 | 已实现 | prompts/、rubrics/retail.yaml、configs/experiment.yaml |
@@ -86,7 +86,7 @@
 | 异常对账，不完整不进正式比较 | 已实现/已验证 | 真实API错误尚待smoke测量，不以脚本检查代替 |
 | 五类交付表/图/案例 | 生成程序/操作路径已具备 | **真实主表、修复案例、消融与泛化结果未形成** |
 | 另一位使用者按文档复现 | README/下一步指南已提供 | **尚未独立复现实验**；自测不等于独立使用者验收 |
-| GitHub公开工程与脱敏报告 | 忽略规则、独立Git已就绪 | **未提交/推送**：缺Git身份、remote，连接状态未确认 |
+| GitHub公开工程与脱敏报告 | 代码已公开；报告待真实结果 | 公开仓库`Josepheeeee/retail-agent-eval`（main）；真实轨迹/报告未发布 |
 
 ## 本轮新增验收（2026-10-22）
 
