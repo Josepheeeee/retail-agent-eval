@@ -13,7 +13,7 @@
 所有源码获取到external/，保持原上游许可证，不提交到本项目Git：
 
 ```powershell
-python scripts/fetch_references.py             # 全部六个固定源码树
+python scripts/fetch_references.py             # 全部五个固定源码树
 python scripts/fetch_references.py tau-bench    # 仅运行所需环境
 ```
 
@@ -24,11 +24,8 @@ python scripts/fetch_references.py tau-bench    # 仅运行所需环境
 | [DeepAgents](https://github.com/langchain-ai/deepagents) | 4f8a6566d1c0 | MIT | create_deep_agent、消息状态和模型中间件；agent.py约束工具并在工具节点前中断 | `retail-eval collect --split train --limit 5 --trials 1`；离线SDK往返在pytest中验证 |
 | [τ-bench](https://github.com/sierra-research/tau2-bench/tree/v1.0.1) | fc0055dc4e0a，tag v1.0.1 | MIT | 零售政策、114任务、模拟用户、数据库、builder、evaluator | `pip install --no-deps -e external/tau-bench`；`retail-eval prepare-data`、collect |
 | [DSPy](https://github.com/stanfordnlp/dspy) | 661b2f1a2521 | MIT | GEPA集成与模块化优化的参考；当前不重复包装DSPy优化循环 | `python -c "import dspy; print(dspy.GEPA)"`；独立例子按上游README在另一个环境运行 |
-| [GEPA](https://github.com/gepa-ai/gepa) | 8f287de942f4 | MIT | GEPAAdapter、EvaluationBatch、gepa.optimize默认反思器；optimize.py | `retail-eval optimize --group A2 --seed 42`，A3更换反馈组织 |
-| [JudgeLM](https://github.com/baaivision/JudgeLM) | 00c45169de47 | Apache-2.0 | 专用Judge SFT、教师偏差与评分方法参考；不直接用原通用标签作零售金标 | 本地`export-sft`后远端训练；上游README和scripts/train_judgelm是原方法训练入口，依赖/底座与本工程分离 |
-| [LlamaFactory](https://github.com/hiyouga/LlamaFactory) | c683e59edd8f | Apache-2.0 | 四卡LoRA SFT执行；本项目只生成数据/配置/来源/接回流程 | `retail-eval judge-sft-config`导出YAML；`scripts/linux/train_judge.sh`在H20执行 |
-| [Qwen3-4B](https://huggingface.co/Qwen/Qwen3-4B) | record-at-serve | 以模型卡为准 | 小Judge默认底座，非思考模式，LoRA SFT；不声称其为本项目训练的基础模型 | 训练前记录HF revision与tokenizer revision；权重不随仓库分发 |
-| [Agent World Model](https://github.com/Snowflake-Labs/agent-world-model) | 85e322f69279 | 锁定根目录未声明许可证 | 可执行合成环境与质量核验参考；首版不运行环境生成/RL | 扩展阶段在独立环境按上游README执行`uv sync --extra bench`及`awm bench --mode tau2 ...`，需额外模型/子模块 |
+| [GEPA](https://github.com/gepa-ai/gepa) | 8f287de942f4 | MIT | GEPAAdapter、EvaluationBatch、gepa.optimize默认反思器；optimize.py | 代码保留。当前进步不看 A3−A2，不把 optimize 排进当前步骤 |
+| [Agent World Model](https://github.com/Snowflake-Labs/agent-world-model) | 85e322f69279 | 锁定根目录未声明许可证 | 可执行合成环境与质量核验参考；当前不运行环境生成 | 模拟题仍要求可执行初态、工具和终态。不运行 AWM 的环境生成 |
 
 DeepAgents是高Star被测对象，DSPy是高Star优化生态参考；不以Star证明评测有效性。选题时核验的2026-10-21快照：DeepAgents约30.5k、DSPy约38.7k；数值会变，最终公开展示应标注日期或重新查官方仓库。
 
@@ -42,9 +39,8 @@ AWM在当前源码树未找到独立LICENSE，因此不替它推断Apache/MIT；
 |---|---|---|---|
 | [τ-bench: A Benchmark for Tool-Agent-User Interaction in Real-World Domains，ICLR 2025](https://proceedings.iclr.cc/paper_files/paper/2025/hash/1b126cc38b8638e07bef37e7b2bb72bf-Abstract-Conference.html) | 在政策、用户、工具和环境状态中检验完成度与重复运行可靠性 | agent.py的官方环境/奖励；三trial和pass³ | 当前仓库v1.0.1不等于原论文发布代码/模型；仅终态不能证明每一步合规 |
 | [AgentRewardBench，2025](https://arxiv.org/abs/2504.08942) | 自动评分器本身需要独立校验，过程错误与完成度不能只凭一个模型结论 | 盲标金标、失败误放行/弃判/解析统计 | 强Judge不是人工真值；本项目不是对其全数据/排行榜的复现 |
-| [JudgeLM: Fine-tuned Large Language Models are Scalable Judges，ICLR 2025](https://proceedings.iclr.cc/paper_files/paper/2025/hash/7f8f73134e253845a8f82983219a8452-Abstract-Conference.html) | 通过训练构建专用评分器，同时关注评分偏差 | train-only SFT导出、J0–J4的权重×提示词对照 | 通用评判效果不保证零售业务可靠；本地导出不等于训练成功 |
-| [GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning，ICLR 2026](https://proceedings.iclr.cc/paper_files/paper/2026/hash/0e9e708b6f48e14fd0ac29e167413f76-Abstract-Conference.html) | 轨迹、文字反馈与反思用于提示改进 | 同预算A2/A3、固定开发选择和独立测试 | GEPA已有文字反思，不能把基线削弱成无反馈或声称“首次结构化反思” |
-| [Agent World Model，ICML 2026](https://proceedings.mlr.press/v306/wang26jh.html) | 合成任务需要可执行世界与验证，而非只有自然语言描述 | 后续train扩充的环境/状态/验证门槛 | 没有生成环境与训练就不声称复现其RL收益 |
+| [GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning，ICLR 2026](https://proceedings.iclr.cc/paper_files/paper/2026/hash/0e9e708b6f48e14fd0ac29e167413f76-Abstract-Conference.html) | 轨迹、文字反馈与反思用于提示改进 | 代码保留；当前进步不看 A3−A2 | GEPA已有文字反思，不能把基线削弱成无反馈或声称“首次结构化反思” |
+| [Agent World Model，ICML 2026](https://proceedings.mlr.press/v306/wang26jh.html) | 合成任务需要可执行世界与验证，而非只有自然语言描述 | EXPERIMENTS 第 12 章要求可执行初态、工具和终态 | 没有生成环境就不声称复现其强化学习收益 |
 
 各论文的实测数字属于各自实验，不作为本项目预期提升填入结果表。
 
@@ -65,6 +61,6 @@ AWM在当前源码树未找到独立LICENSE，因此不替它推断Apache/MIT；
 
 ## 5. 阅读与引用顺序
 
-先读淘宝文章理解业务闭环；读τ-bench确定实验环境与官方奖励；读CLEAR理解多粒度输出，读AgentDebug理解诊断到修复；读GEPA设计公平对照；读AgentRewardBench和JudgeLM设计评分器校准与训练；AgentEval、Who&When用于归因验证扩展；AWM用于训练任务扩充扩展。
+先读淘宝文章理解业务闭环；读τ-bench确定实验环境与官方奖励；读CLEAR理解多粒度输出，读AgentDebug理解诊断到修复；读AgentRewardBench理解评分器要和人对齐；AgentEval、Who&When用于归因验证扩展；AWM只作为可执行终态的门槛。当前项目不训练 Judge。
 
 引用中的“提供依据”指设计启发与可检验方法，不表示这些论文已经联合验证了本项目组合。论文、源码、任务和模型版本分别记录，最终结论只由本项目真实实验给出。

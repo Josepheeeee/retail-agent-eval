@@ -11,4 +11,4 @@ if [ ! -d external/tau-bench ]; then python scripts/fetch_references.py tau-benc
 python -m pip install --no-deps --no-build-isolation -e external/tau-bench -e .
 python -m pip check
 python -m retail_eval.run doctor
-echo "Base environment ready. Training: install_train.sh; serving: install_infer.sh"
+echo "Base environment ready. Serving: install_infer.sh"

@@ -68,7 +68,7 @@ REFERENCES.md对每个项目记录官方地址、固定版本、许可证、采�
 | [DeepAgents](https://github.com/langchain-ai/deepagents) | 高Star被测对象，接入零售政策与工具 |
 | [τ-bench v1.0.1](https://github.com/sierra-research/tau2-bench/tree/v1.0.1) | 零售任务、用户模拟器、工具、状态与官方评分 |
 | [DSPy](https://github.com/stanfordnlp/dspy) / [GEPA](https://github.com/gepa-ai/gepa) | 自动提示词优化方法与正常使用的对照基线 |
-| [JudgeLM](https://github.com/baaivision/JudgeLM) | 专用Judge训练与评估方法参考 |
+| 固定 Judge | prompts/judge.md 与 rubrics/retail.yaml；当前不训练小 Judge |
 
 淘宝方法来源：[原文](https://mp.weixin.qq.com/s/blMjReLQZUuSK6bl6Bt3yA)。PDF保留在用户原目录，不随项目重新分发。上游依赖归属保持不变，明确区分直接复用、适配实现与个人改进。
 
@@ -76,9 +76,8 @@ REFERENCES.md对每个项目记录官方地址、固定版本、许可证、采�
 
 | 问题 | 预期检验方向 | 最终产物 |
 |---|---|---|
-| 分层评测是否可信 | 识别任务失败、业务违规、证据不足 | Judge校验表、混淆矩阵与错误案例 |
-| 分层归因是否帮助优化 | 相同搜索预算下提高独立任务表现或减少尝试 | 主实验表、优化曲线、失败类型变化 |
-| 小Judge是否值得微调 | 可靠性与调用开销之间的权衡 | 原始小模型、SFT模型与强模型对照 |
+| 尺子是否可信 | 测试 40 上 v1 与最终版的人机一致、误放行和最早错误 | 盲标金标与固定 Judge 的对照 |
+| 助手是否改好了订单 | 只改尺子时官方终态通过率几乎不动 | 同一测试 40 的官方终态通过率 |
 
 预期收益仅作假设，不预填提升数字。无显著提升、局部退化、跨版本失效均保留并分析。
 
@@ -90,7 +89,7 @@ REFERENCES.md对每个项目记录官方地址、固定版本、许可证、采�
 |---|---|
 | [τ-bench，ICLR2025](https://proceedings.iclr.cc/paper_files/paper/2025/hash/1b126cc38b8638e07bef37e7b2bb72bf-Abstract-Conference.html) | 用户/工具/政策交互、终态核验、重复运行可靠性 |
 | [AgentRewardBench](https://arxiv.org/abs/2504.08942) | 自动评分器需要独立人工校验；分析成功、副作用与重复行为误判 |
-| [JudgeLM，ICLR2025](https://proceedings.iclr.cc/paper_files/paper/2025/hash/7f8f73134e253845a8f82983219a8452-Abstract-Conference.html) | 导出业务评分训练集，比较SFT前后可靠性 |
+| 模拟题 | 只从训练 54 派生；构建与筛选见 EXPERIMENTS 第 12 章 |
 | [GEPA，ICLR2026](https://proceedings.iclr.cc/paper_files/paper/2026/hash/0e9e708b6f48e14fd0ac29e167413f76-Abstract-Conference.html) | 从轨迹与文字反馈学习提示词改进，作为正常优化基线 |
 | [AWM，ICML2026](https://proceedings.mlr.press/v306/wang26jh.html) | 合成任务需可执行环境、状态与验证，指导train扩充及质量检查 |
 
@@ -107,7 +106,7 @@ REFERENCES.md对每个项目记录官方地址、固定版本、许可证、采�
 
 ## 5. 创新点与验证条件
 
-个人改进聚焦：**将分层失败归因组织为GEPA可利用的结构化反馈。**
+个人改进聚焦：**用官方终态做锚，把尺子变化和 Agent 变化分开。** 当前进步不看 A3−A2。模拟题的构建与筛选见 [EXPERIMENTS.md](EXPERIMENTS.md) 第 12 章。
 
 反馈包含失败层级、具体业务规则、可定位的轨迹证据、可修改的Agent提示位置及建议。区分数据缺失、Rubric错误与Agent错误；仅确认属于Agent提示或执行要求的问题进入Agent优化。
 
@@ -123,7 +122,7 @@ CONTRIBUTIONS.md分别记录淘宝流程复现、开源适配、个人反馈实�
 - 保留官方test40；官方train74划为train54/dev20。
 - 使用固定盐值的任务ID哈希排序，保存清单；[官方划分](https://github.com/sierra-research/tau2-bench/blob/v1.0.1/data/tau2/domains/retail/split_tasks.json)。
 - 合成扩充只基于train；同源样本跟随parent_task_id划分。
-- test任务、轨迹、反馈不得进入提示词优化、Judge训练或候选选择。
+- test任务、轨迹、反馈不得进入提示词修改、模拟题派生或水位判断。
 - 数据库核验、官方综合评分、人工语义判断分别保存，标明官方评分中的模型判断。
 - 人工目标480轨迹：train240/dev80/test160；按任务/结果分层抽样，隐藏模型、版本、自动评分；test标注在候选冻结后完成。
 
@@ -145,42 +144,26 @@ CONTRIBUTIONS.md分别记录淘宝流程复现、开源适配、个人反馈实�
 
 ### 6.3 消融与泛化
 
-- 去层级：保留规则/证据，移除失败层级组织。
-- 去证据定位：保留层级/规则，移除具体证据引用。
-- 两组使用A3相同种子和预算。
-- 第二模型比较A0/A2/A3，检查是否依赖单一底座。
-- train改写扩充表现与独立test表现分开；改写不当作新独立任务。
+GEPA 消融和第二模型对照仍留在代码里，不排进当前步骤，也不作为 v1 与最终版的进步。模拟题只从训练父任务派生，见 EXPERIMENTS 第 12 章。
 
-### 6.4 Judge实验
+### 6.4 固定 Judge
 
-固定同一批Agent轨迹：
-
-| 组别 | 小模型权重 | 提示词 |
-|---|---|---|
-| J0 | 原始 | 通用 |
-| J1 | 原始 | 分层Rubric |
-| J2 | SFT后 | 通用 |
-| J3 | SFT后 | 分层Rubric |
-| J4 | 固定强模型 | 分层Rubric，参照 |
-
-J0–J3使用同一小模型底座。导出远端SFT格式，标记人工、环境检查、教师标签来源；教师不当人工真值。用独立人工金标检验；SFT模型通过API接回本地。Agent主实验使用同一评分协议，Judge实验单独汇报。本地不负责Jupyter训练。
+当前只用 `prompts/judge.md` 和 `rubrics/retail.yaml`。不训练小 Judge，也不设 J0–J4。只有 `label_source=human` 进入一致率。teacher 行不能算进这份一致率。
 
 ### 6.5 指标、统计与结果
 
-Agent：官方成功率及评分组成、三次均成功任务比例、政策违规、重复执行及副作用、调用次数/Token/耗时/优化总开销。
+尺子：总体一致率；每一层的一致率，以及人标失败里 Judge 找回来的比例，该层没有失败就不报；误放行；最早错误事件对上的比例。
 
-Judge：准确率、Precision/Recall/F1、真实失败误放行比例、弃判率、自动覆盖率、解析失败率；在同覆盖率下比较，防止弃判取巧。
+助手：官方终态通过率。只在助手改完并重做之后才用来声称订单做得更好。只改尺子时，这个数应几乎不动。
 
-统计：任务为配对单位，报告A3−A2差值和95%CI；按任务分组Bootstrap，保留三次重复关系，单独呈现优化种子差异。有限任务不确定性必须披露，辅助指标用于诊断。API/评分异常单独记账，未完成运行不得静默进入完整表。
-
-交付图表：①Agent版本/方法表；②dev优化曲线与固定test最终结果；③分层失败及修复案例；④Judge混淆矩阵与可靠性—开销；⑤消融与第二模型结果。
+比较只在测试 40 的 v1 和最终版之间做。Judge 自己的通过率、模拟题涨幅和训练 54 涨幅不是进步。API 和评分异常单独记账。
 
 ### 6.6 实施顺序与验收
 
 1. 工程约定、引用清单、预注册、固定样例。
-2. 固定样例闭环，再跑至少5个真实零售任务。
-3. 批量运行、人工校准、基线报告。
-4. GEPA、分层反馈、消融和Judge实验。
-5. 复现命令、配置快照、公开数据清单、最终结论。
+2. 固定样例闭环，再跑至少 5 个真实零售任务。
+3. 未修改的助手跑出 v1 轨迹，盲标并封存测试。
+4. 按 EXPERIMENTS 第 12 章构建并筛选模拟题，在训练侧做 v2、v3…，水位看开发 20。
+5. 测试 40 再跑最终版并另做盲标；变差记负结果。
 
 验收包括：环境隔离、无同源泄漏、有效证据引用、异常可对账、评分版本固定、真实结果可追溯、另一位使用者可按文档复现。**只有上述实验、标注和最终结果也有可核查产物后，才可将整体计划标为完成。**

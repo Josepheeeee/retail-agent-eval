@@ -25,18 +25,6 @@ repositories:
     commit: 8f287de942f41a6d1e0e7e5b2d576247c4bedee9
     license: MIT
     use: source_reference_runtime_from_pypi_lock
-  JudgeLM:
-    url: https://github.com/baaivision/JudgeLM.git
-    ref: HEAD-at-lock
-    commit: 00c45169de47641f62223f57cc15b608bc3cc69d
-    license: Apache-2.0
-    use: method_reference_not_retail_labels
-  LlamaFactory:
-    url: https://github.com/hiyouga/LlamaFactory.git
-    ref: HEAD-at-lock
-    commit: c683e59edd8f893abc5e1403184a1d0644817d2a
-    license: Apache-2.0
-    use: remote_judge_lora_sft_execution
   agent-world-model:
     url: https://github.com/Snowflake-Labs/agent-world-model.git
     ref: HEAD-at-lock

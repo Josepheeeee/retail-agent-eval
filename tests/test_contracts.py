@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from retail_eval.data import assert_membership, clean_trace, export_sft, prepare_splits, stratified_sample
+from retail_eval.data import assert_membership, clean_trace, prepare_splits, stratified_sample
 from retail_eval.judge import ModelEndpoint, fixture_grade, judge_payload, judge_trace
 from retail_eval.optimize import BudgetExhausted, RetailAdapter, feedback, optimize_prompt
 from retail_eval.report import judge_metrics, make_report, paired_bootstrap
@@ -85,21 +85,6 @@ def test_split_pins_and_parent_isolation(tmp_path, fixtures):
     t = live_copy(fixtures[0][0]).model_copy(update={"parent_task_id": a["splits"]["test"][0]})
     with pytest.raises(ValueError, match="parent"):
         assert_membership([t], a)
-
-
-def test_sft_rejects_test_and_teacher_is_not_human(fixtures, rubric, tmp_path):
-    t, g = fixtures[0][0], fixtures[1][0]
-    manifest = {"splits": {"train": ["1"], "dev": [], "test": ["2"]}}
-    test = live_copy(t, "test").model_copy(update={"task_id": "2"})
-    label = {"trace_id": t.trace_id, "label_source": "teacher", "grade": g.model_dump()}
-    with pytest.raises(ValueError, match="train"):
-        export_sft([test], [label], tmp_path / "bad.jsonl", "judge", manifest, rubric)
-    target = tmp_path / "sft.jsonl"
-    assert export_sft([live_copy(t)], [label], target, "judge", manifest, rubric) == 1
-    row = read_jsonl(target)[0]
-    assert set(row) == {"messages"}
-    assert read_jsonl(target.with_suffix(".provenance.jsonl"))[0]["label_source"] == "teacher"
-    assert "official_reward" not in row["messages"][1]["content"]
 
 
 def test_judge_parse_error_and_transport_are_not_pass(fixtures, rubric):

@@ -36,12 +36,11 @@ if (-not (Test-Path -LiteralPath '.env')) {
 | AGENT_MODEL | 服务端存在的模型ID，支持工具调用 | 五任务前 |
 | USER_MODEL | 用户模拟模型ID，支持官方角色指令 | 五任务前 |
 | JUDGE_MODEL | 固定评分模型ID，支持JSON object输出 | 五任务前 |
-| REFLECTION_MODEL | GEPA反思模型ID | 运行A2/A3前 |
-| SMALL_BASE_MODEL / SMALL_SFT_MODEL / STRONG_MODEL | 原始小Judge、SFT权重及固定强参照 | Judge实验前 |
+| REFLECTION_MODEL | 仅在另行启用 GEPA 时填写 | 当前步骤不需要 |
 
-前三个角色可共享同一服务，也可用`AGENT_BASE_URL/AGENT_API_KEY`等角色字段分别配置。`SMALL_BASE_BASE_URL`等名称按.env.example原样填写。不要把占位符当作有效模型ID，不向聊天发送密钥，也不把.env加入Git。
+前三个角色可共享同一服务，也可用`AGENT_BASE_URL/AGENT_API_KEY`等角色字段分别配置。不要把占位符当作有效模型ID，不向聊天发送密钥，也不把.env加入Git。
 
-配置后再运行doctor。第一阶段只要求agent/user/judge不再显示not configured；reflection和三个Judge实验角色暂时未配置不影响五任务。
+配置后再运行doctor。第一阶段只要求 agent、user、judge 不再显示 not configured。reflection 未配置不影响五任务。
 
 ## 3. 跑五个真实零售任务
 
@@ -77,19 +76,19 @@ $summary.versions | Format-Table version, n, official_outcomes_known, judge_pass
 
 ## 5. 按顺序开展实验
 
+模拟题的构建和筛选只看 [EXPERIMENTS.md 第 12 章](EXPERIMENTS.md)。不要把模拟题写进测试 40。
+
 | 顺序 | 操作 | 应留下的产物 | 详细入口 |
 |---|---|---|---|
-| 1 | A0/A1完整dev，记录人工修订 | dev运行、人工记录 | 根README“基线、GEPA与最终测试” |
-| 2 | A2/A3及两消融，各42/43/44 | 最多150调用/优化run、候选、反思、dev曲线 | optimize命令、EXPERIMENTS第5–6部分 |
-| 3 | 按完整dev选择候选并freeze | frozen_candidate.json | freeze命令 |
-| 4 | 各候选全部40×3测试 | 120条/候选、官方组成与Judge结果 | collect --split test |
-| 5 | 第二模型独立运行A0/A2/A3 | 第二模型自己的dev/freeze/test | 只更换Agent角色，固定其他角色 |
-| 6 | 建各划分池，盲标240/80/160 | pool/抽样清单、人类标签和复核记录 | pool、annotation-export/import |
-| 7 | train-only导出、远端SFT并接回 | JSONL及来源、训练记录、模型接口 | export-sft；本地不训练 |
-| 8 | 固定轨迹运行J0–J4 | 独立金标混淆、覆盖率/成本 | judge-matrix --gold |
-| 9 | 合并方法表与配对比较 | aggregate报告、A3−A2差值/95%CI、真实结论 | aggregate、compare |
+| 1 | 未修改的助手跑出轨迹 | 各划分的 live 轨迹 | collect；先做第 3 节五任务 |
+| 2 | 盲标测试轨迹并封存，同时盲标训练和开发 | 人标；测试标签不再打开 | annotation-export/import |
+| 3 | 记下测试上的两列指标 | 尺子四项和官方终态通过率 | report --gold |
+| 4 | LLM 从训练父题起草模拟题，按第 12 章筛选并由人抽查 | 收下的题和淘汰记录 | EXPERIMENTS 第 12 章 |
+| 5 | 训练上先改清洗或尺子；终态仍为 0 才改助手并重做 | v2、v3… 的轨迹 | 同一批训练题重打或重做 |
+| 6 | 开发上人和 Judge 已对齐，且官方终态通过率不再上升，就停 | 水位记录 | 开发 20，不从这里派生 |
+| 7 | 测试上再跑最终版，并另做盲标 | 与 v1 的比较；变差记负结果 | collect --split test |
 
-train/dev人工金标可在基线采集后先做；test金标必须在候选冻结后，且不回流优化。Judge实验始终固定轨迹，不能中途替换Agent主实验的评分器。
+水位不看模拟题上 Judge 自己的通过率，也不看训练 54 上的涨幅。GEPA 命令仍在代码里，不排进上表。
 
 ## 6. Git与发布
 

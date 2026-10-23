@@ -17,7 +17,7 @@
     },
     "judge": {
       "level": 1.0,
-      "rationale": "证据约束 Judge、J0–J4、盲标与复核协议"
+      "rationale": "证据约束的固定 Judge、盲标与复核协议；当前不训练小 Judge"
     },
     "agent": {
       "level": 1.0,
@@ -29,7 +29,7 @@
     },
     "contamination": {
       "level": 1.0,
-      "rationale": "父任务同源分组、test 禁入、导出拒绝"
+      "rationale": "父任务同源分组；test 不进入优化、水位或模拟题"
     },
     "safety": {
       "level": 0.5,
@@ -49,11 +49,11 @@
     },
     "data": {
       "level": 0.75,
-      "rationale": "盲标导入导出与 train-only SFT 导出；480 条标注尚未执行"
+      "rationale": "盲标导入导出；480 条标注尚未执行；模拟题规则已写、尚未生成"
     },
     "training": {
-      "level": 0.5,
-      "rationale": "只有 Judge SFT 配置/导出，没有真实训练与接回"
+      "level": 0.0,
+      "rationale": "当前实验不包含模型微调"
     },
     "platform": {
       "level": 0.4,
@@ -66,46 +66,46 @@
   },
   "summary": {
     "n": 70,
-    "mean_all": 0.6416586270871986,
-    "mean_core": 0.6699349588320177,
-    "mean_adjacent": 0.5614261664261665,
-    "mean_intern_campus": 0.6144019274376417,
-    "mean_intern_campus_core": 0.6475744047619048,
-    "mean_conditional_all": 0.7894314058956916,
-    "mean_conditional_core": 0.8066487706193589,
+    "mean_all": 0.6009293960008246,
+    "mean_core": 0.6306060959737431,
+    "mean_adjacent": 0.5144664902998236,
+    "mean_intern_campus": 0.5727730536659108,
+    "mean_intern_campus_core": 0.6044196428571429,
+    "mean_conditional_all": 0.7359109977324263,
+    "mean_conditional_core": 0.7566643323996265,
     "tags": 486,
-    "tags_covered": 318.95,
-    "tags_lost": 167.05,
+    "tags_covered": 297.95,
+    "tags_lost": 188.05,
     "jds_with_non_goal": 59,
     "jds_without_non_goal": 11
   },
   "bands": {
     "ge_90": 1,
-    "75_90": 11,
-    "50_75": 48,
-    "30_50": 9,
-    "lt_30": 1
+    "75_90": 8,
+    "50_75": 46,
+    "30_50": 12,
+    "lt_30": 3
   },
   "thresholds": [
     {
       "at_least": "80.0%",
-      "n": 8,
-      "core": 8
+      "n": 4,
+      "core": 4
     },
     {
       "at_least": "70.0%",
-      "n": 27,
-      "core": 24
+      "n": 18,
+      "core": 17
     },
     {
       "at_least": "60.0%",
-      "n": 51,
-      "core": 41
+      "n": 40,
+      "core": 32
     },
     {
       "at_least": "50.0%",
-      "n": 60,
-      "core": 47
+      "n": 55,
+      "core": 44
     }
   ],
   "capability_loss": [
@@ -114,6 +114,12 @@
       "frequency": 45,
       "level": 0.0,
       "lost": 45.0
+    },
+    {
+      "capability": "training",
+      "frequency": 42,
+      "level": 0.0,
+      "lost": 42.0
     },
     {
       "capability": "multimodal",
@@ -126,12 +132,6 @@
       "frequency": 58,
       "level": 0.4,
       "lost": 34.8
-    },
-    {
-      "capability": "training",
-      "frequency": 42,
-      "level": 0.5,
-      "lost": 21.0
     },
     {
       "capability": "safety",
@@ -197,13 +197,13 @@
   "scenarios": {
     "base": {
       "changes": {},
-      "mean": 0.6416586270871986
+      "mean": 0.6009293960008246
     },
     "platform_0.8": {
       "changes": {
         "platform": 0.8
       },
-      "mean": 0.6969041434755721
+      "mean": 0.6561749123891981
     },
     "training_0.9": {
       "changes": {
@@ -215,7 +215,7 @@
       "changes": {
         "safety": 0.8
       },
-      "mean": 0.6598376623376623
+      "mean": 0.6191084312512883
     },
     "three_weak_spots": {
       "changes": {
@@ -238,7 +238,7 @@
   "sensitivity": {
     "min": 0.5380091733663163,
     "max": 0.7176853226138941,
-    "base": 0.6416586270871986,
+    "base": 0.6009293960008246,
     "grid": {
       "platform": [
         0.0,
@@ -295,26 +295,6 @@
       "conditional_score": 0.875
     },
     {
-      "jd_id": "JD-10",
-      "company": "百度",
-      "title": "大模型智能标注与评测算法工程师（J105767）",
-      "category": "core",
-      "level_kind": "social",
-      "capabilities": [
-        "benchmark",
-        "metric",
-        "judge",
-        "agent",
-        "calibration",
-        "data",
-        "training",
-        "platform",
-        "diagnosis"
-      ],
-      "score": 0.8500000000000001,
-      "conditional_score": 0.8500000000000001
-    },
-    {
       "jd_id": "JD-16",
       "company": "美团",
       "title": "【基座大模型北斗实习】开放域智能体交互与自动化评测演进机制研究",
@@ -330,61 +310,6 @@
       ],
       "score": 0.8333333333333334,
       "conditional_score": 1.0
-    },
-    {
-      "jd_id": "JD-51",
-      "company": "蚂蚁集团",
-      "title": "【Plan A】大模型动态评测与评测诊断方向（AGI蓝军）-27届",
-      "category": "core",
-      "level_kind": "campus",
-      "capabilities": [
-        "metric",
-        "agent",
-        "calibration",
-        "training",
-        "platform",
-        "diagnosis"
-      ],
-      "score": 0.8166666666666668,
-      "conditional_score": 0.8166666666666668
-    },
-    {
-      "jd_id": "JD-55",
-      "company": "蚂蚁集团",
-      "title": "【蚂蚁星】AI工程师-大模型评测-百灵-27届",
-      "category": "core",
-      "level_kind": "campus",
-      "capabilities": [
-        "benchmark",
-        "metric",
-        "agent",
-        "calibration",
-        "training",
-        "platform"
-      ],
-      "score": 0.8166666666666668,
-      "conditional_score": 0.8166666666666668
-    },
-    {
-      "jd_id": "JD-21",
-      "company": "商汤",
-      "title": "【27届校招】大模型评测算法工程师",
-      "category": "core",
-      "level_kind": "campus",
-      "capabilities": [
-        "benchmark",
-        "metric",
-        "judge",
-        "agent",
-        "contamination",
-        "safety",
-        "data",
-        "training",
-        "platform",
-        "diagnosis"
-      ],
-      "score": 0.8150000000000001,
-      "conditional_score": 0.8150000000000001
     },
     {
       "jd_id": "JD-08",
@@ -404,6 +329,76 @@
       ],
       "score": 0.8,
       "conditional_score": 0.9142857142857144
+    },
+    {
+      "jd_id": "JD-10",
+      "company": "百度",
+      "title": "大模型智能标注与评测算法工程师（J105767）",
+      "category": "core",
+      "level_kind": "social",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "calibration",
+        "data",
+        "training",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.7944444444444445,
+      "conditional_score": 0.7944444444444445
+    },
+    {
+      "jd_id": "JD-24",
+      "company": "网易",
+      "title": "易盾-Agent安全算法实习生",
+      "category": "adjacent",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "agent",
+        "safety",
+        "platform"
+      ],
+      "score": 0.78,
+      "conditional_score": 0.78
+    },
+    {
+      "jd_id": "JD-32",
+      "company": "阿里巴巴",
+      "title": "智能体运行时安全评测与防御关键技术研究-阿里星",
+      "category": "core",
+      "level_kind": "campus",
+      "capabilities": [
+        "benchmark",
+        "agent",
+        "safety",
+        "platform",
+        "diagnosis"
+      ],
+      "score": 0.78,
+      "conditional_score": 0.78
+    },
+    {
+      "jd_id": "JD-53",
+      "company": "蚂蚁集团",
+      "title": "【蚂蚁星】多模态理解与生成评测算法研究（实习）",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "metric",
+        "judge",
+        "agent",
+        "calibration",
+        "multimodal",
+        "platform"
+      ],
+      "score": 0.7714285714285715,
+      "conditional_score": 0.9
     }
   ],
   "bottom": [
@@ -423,21 +418,6 @@
       "conditional_score": 0.45
     },
     {
-      "jd_id": "JD-11",
-      "company": "MiniMax",
-      "title": "大模型算法评测实习生",
-      "category": "core",
-      "level_kind": "intern",
-      "capabilities": [
-        "benchmark",
-        "multimodal",
-        "code",
-        "platform"
-      ],
-      "score": 0.35,
-      "conditional_score": 0.7
-    },
-    {
       "jd_id": "JD-14",
       "company": "小红书",
       "title": "【Ace顶尖实习生】大模型后训练泛化性研究",
@@ -449,24 +429,8 @@
         "code",
         "training"
       ],
-      "score": 0.375,
-      "conditional_score": 0.75
-    },
-    {
-      "jd_id": "JD-36",
-      "company": "阿里巴巴",
-      "title": "日常实习生-多模态及视觉生成大模型安全评测与原生安全机制研究",
-      "category": "adjacent",
-      "level_kind": "intern",
-      "capabilities": [
-        "calibration",
-        "safety",
-        "multimodal",
-        "code",
-        "platform"
-      ],
-      "score": 0.38,
-      "conditional_score": 0.6333333333333333
+      "score": 0.25,
+      "conditional_score": 0.5
     },
     {
       "jd_id": "JD-52",
@@ -481,8 +445,41 @@
         "training",
         "platform"
       ],
-      "score": 0.38,
-      "conditional_score": 0.6333333333333333
+      "score": 0.27999999999999997,
+      "conditional_score": 0.4666666666666666
+    },
+    {
+      "jd_id": "JD-58",
+      "company": "蚂蚁集团",
+      "title": "CTO-大模型-评测体系建设",
+      "category": "core",
+      "level_kind": "intern",
+      "capabilities": [
+        "benchmark",
+        "safety",
+        "multimodal",
+        "code",
+        "training"
+      ],
+      "score": 0.3,
+      "conditional_score": 0.5
+    },
+    {
+      "jd_id": "JD-15",
+      "company": "美团",
+      "title": "基座大模型研究分析实习生",
+      "category": "adjacent",
+      "level_kind": "intern",
+      "capabilities": [
+        "calibration",
+        "safety",
+        "multimodal",
+        "code",
+        "training",
+        "platform"
+      ],
+      "score": 0.31666666666666665,
+      "conditional_score": 0.475
     }
   ],
   "records": [
@@ -579,8 +576,8 @@
         "data",
         "training"
       ],
-      "score": 0.75,
-      "conditional_score": 0.875
+      "score": 0.6785714285714286,
+      "conditional_score": 0.7916666666666666
     },
     {
       "jd_id": "JD-07",
@@ -599,8 +596,8 @@
         "training",
         "platform"
       ],
-      "score": 0.6000000000000001,
-      "conditional_score": 0.7714285714285715
+      "score": 0.5444444444444445,
+      "conditional_score": 0.7000000000000001
     },
     {
       "jd_id": "JD-08",
@@ -640,8 +637,8 @@
         "platform",
         "diagnosis"
       ],
-      "score": 0.740909090909091,
-      "conditional_score": 0.8150000000000001
+      "score": 0.6954545454545454,
+      "conditional_score": 0.765
     },
     {
       "jd_id": "JD-10",
@@ -660,8 +657,8 @@
         "platform",
         "diagnosis"
       ],
-      "score": 0.8500000000000001,
-      "conditional_score": 0.8500000000000001
+      "score": 0.7944444444444445,
+      "conditional_score": 0.7944444444444445
     },
     {
       "jd_id": "JD-11",
@@ -692,8 +689,8 @@
         "training",
         "platform"
       ],
-      "score": 0.6083333333333333,
-      "conditional_score": 0.73
+      "score": 0.525,
+      "conditional_score": 0.63
     },
     {
       "jd_id": "JD-13",
@@ -715,8 +712,8 @@
         "training",
         "platform"
       ],
-      "score": 0.5958333333333333,
-      "conditional_score": 0.7944444444444445
+      "score": 0.5541666666666667,
+      "conditional_score": 0.7388888888888889
     },
     {
       "jd_id": "JD-14",
@@ -730,8 +727,8 @@
         "code",
         "training"
       ],
-      "score": 0.375,
-      "conditional_score": 0.75
+      "score": 0.25,
+      "conditional_score": 0.5
     },
     {
       "jd_id": "JD-15",
@@ -747,8 +744,8 @@
         "training",
         "platform"
       ],
-      "score": 0.39999999999999997,
-      "conditional_score": 0.6
+      "score": 0.31666666666666665,
+      "conditional_score": 0.475
     },
     {
       "jd_id": "JD-16",
@@ -805,8 +802,8 @@
         "platform",
         "diagnosis"
       ],
-      "score": 0.65,
-      "conditional_score": 0.7944444444444445
+      "score": 0.6045454545454546,
+      "conditional_score": 0.7388888888888889
     },
     {
       "jd_id": "JD-19",
@@ -822,8 +819,8 @@
         "data",
         "training"
       ],
-      "score": 0.5416666666666666,
-      "conditional_score": 0.8125
+      "score": 0.4583333333333333,
+      "conditional_score": 0.6875
     },
     {
       "jd_id": "JD-20",
@@ -860,8 +857,8 @@
         "platform",
         "diagnosis"
       ],
-      "score": 0.8150000000000001,
-      "conditional_score": 0.8150000000000001
+      "score": 0.765,
+      "conditional_score": 0.765
     },
     {
       "jd_id": "JD-22",
@@ -933,8 +930,8 @@
         "training",
         "platform"
       ],
-      "score": 0.6000000000000001,
-      "conditional_score": 0.7714285714285715
+      "score": 0.5444444444444445,
+      "conditional_score": 0.7000000000000001
     },
     {
       "jd_id": "JD-26",
@@ -952,8 +949,8 @@
         "training",
         "platform"
       ],
-      "score": 0.55,
-      "conditional_score": 0.7333333333333334
+      "score": 0.4875,
+      "conditional_score": 0.65
     },
     {
       "jd_id": "JD-27",
@@ -971,8 +968,8 @@
         "training",
         "platform"
       ],
-      "score": 0.58125,
-      "conditional_score": 0.775
+      "score": 0.51875,
+      "conditional_score": 0.6916666666666668
     },
     {
       "jd_id": "JD-28",
@@ -991,8 +988,8 @@
         "training",
         "platform"
       ],
-      "score": 0.6000000000000001,
-      "conditional_score": 0.7714285714285715
+      "score": 0.5444444444444445,
+      "conditional_score": 0.7000000000000001
     },
     {
       "jd_id": "JD-29",
@@ -1011,8 +1008,8 @@
         "training",
         "platform"
       ],
-      "score": 0.6277777777777778,
-      "conditional_score": 0.8071428571428572
+      "score": 0.5722222222222223,
+      "conditional_score": 0.7357142857142858
     },
     {
       "jd_id": "JD-30",
@@ -1031,8 +1028,8 @@
         "platform",
         "diagnosis"
       ],
-      "score": 0.7388888888888889,
-      "conditional_score": 0.83125
+      "score": 0.6833333333333333,
+      "conditional_score": 0.76875
     },
     {
       "jd_id": "JD-31",
@@ -1049,8 +1046,8 @@
         "platform",
         "diagnosis"
       ],
-      "score": 0.6642857142857144,
-      "conditional_score": 0.775
+      "score": 0.5928571428571429,
+      "conditional_score": 0.6916666666666668
     },
     {
       "jd_id": "JD-32",
@@ -1164,8 +1161,8 @@
         "training",
         "platform"
       ],
-      "score": 0.665,
-      "conditional_score": 0.83125
+      "score": 0.615,
+      "conditional_score": 0.76875
     },
     {
       "jd_id": "JD-39",
@@ -1183,8 +1180,8 @@
         "training",
         "platform"
       ],
-      "score": 0.6125,
-      "conditional_score": 0.8166666666666668
+      "score": 0.55,
+      "conditional_score": 0.7333333333333334
     },
     {
       "jd_id": "JD-40",
@@ -1203,8 +1200,8 @@
         "training",
         "platform"
       ],
-      "score": 0.6833333333333333,
-      "conditional_score": 0.76875
+      "score": 0.6277777777777778,
+      "conditional_score": 0.70625
     },
     {
       "jd_id": "JD-41",
@@ -1217,8 +1214,8 @@
         "code",
         "training"
       ],
-      "score": 0.5,
-      "conditional_score": 0.75
+      "score": 0.3333333333333333,
+      "conditional_score": 0.5
     },
     {
       "jd_id": "JD-42",
@@ -1278,8 +1275,8 @@
         "platform",
         "diagnosis"
       ],
-      "score": 0.7208333333333333,
-      "conditional_score": 0.865
+      "score": 0.6791666666666667,
+      "conditional_score": 0.8150000000000001
     },
     {
       "jd_id": "JD-45",
@@ -1301,8 +1298,8 @@
         "platform",
         "diagnosis"
       ],
-      "score": 0.7000000000000001,
-      "conditional_score": 0.8400000000000001
+      "score": 0.6583333333333333,
+      "conditional_score": 0.79
     },
     {
       "jd_id": "JD-46",
@@ -1320,8 +1317,8 @@
         "platform",
         "diagnosis"
       ],
-      "score": 0.64375,
-      "conditional_score": 0.7357142857142858
+      "score": 0.58125,
+      "conditional_score": 0.6642857142857144
     },
     {
       "jd_id": "JD-47",
@@ -1339,8 +1336,8 @@
         "platform",
         "diagnosis"
       ],
-      "score": 0.675,
-      "conditional_score": 0.7714285714285715
+      "score": 0.6125,
+      "conditional_score": 0.7000000000000001
     },
     {
       "jd_id": "JD-48",
@@ -1357,8 +1354,8 @@
         "platform",
         "diagnosis"
       ],
-      "score": 0.7000000000000001,
-      "conditional_score": 0.8166666666666668
+      "score": 0.6285714285714287,
+      "conditional_score": 0.7333333333333334
     },
     {
       "jd_id": "JD-49",
@@ -1377,8 +1374,8 @@
         "platform",
         "diagnosis"
       ],
-      "score": 0.7111111111111111,
-      "conditional_score": 0.8
+      "score": 0.6555555555555556,
+      "conditional_score": 0.7375
     },
     {
       "jd_id": "JD-50",
@@ -1412,8 +1409,8 @@
         "platform",
         "diagnosis"
       ],
-      "score": 0.8166666666666668,
-      "conditional_score": 0.8166666666666668
+      "score": 0.7333333333333334,
+      "conditional_score": 0.7333333333333334
     },
     {
       "jd_id": "JD-52",
@@ -1428,8 +1425,8 @@
         "training",
         "platform"
       ],
-      "score": 0.38,
-      "conditional_score": 0.6333333333333333
+      "score": 0.27999999999999997,
+      "conditional_score": 0.4666666666666666
     },
     {
       "jd_id": "JD-53",
@@ -1478,8 +1475,8 @@
         "training",
         "platform"
       ],
-      "score": 0.8166666666666668,
-      "conditional_score": 0.8166666666666668
+      "score": 0.7333333333333334,
+      "conditional_score": 0.7333333333333334
     },
     {
       "jd_id": "JD-56",
@@ -1501,8 +1498,8 @@
         "platform",
         "diagnosis"
       ],
-      "score": 0.6791666666666667,
-      "conditional_score": 0.8150000000000001
+      "score": 0.6375000000000001,
+      "conditional_score": 0.765
     },
     {
       "jd_id": "JD-57",
@@ -1520,8 +1517,8 @@
         "platform",
         "diagnosis"
       ],
-      "score": 0.64375,
-      "conditional_score": 0.7357142857142858
+      "score": 0.58125,
+      "conditional_score": 0.6642857142857144
     },
     {
       "jd_id": "JD-58",
@@ -1536,8 +1533,8 @@
         "code",
         "training"
       ],
-      "score": 0.4,
-      "conditional_score": 0.6666666666666666
+      "score": 0.3,
+      "conditional_score": 0.5
     },
     {
       "jd_id": "JD-59",
@@ -1555,8 +1552,8 @@
         "data",
         "training"
       ],
-      "score": 0.65625,
-      "conditional_score": 0.875
+      "score": 0.59375,
+      "conditional_score": 0.7916666666666666
     },
     {
       "jd_id": "JD-60",
@@ -1589,8 +1586,8 @@
         "platform",
         "diagnosis"
       ],
-      "score": 0.740909090909091,
-      "conditional_score": 0.8150000000000001
+      "score": 0.6954545454545454,
+      "conditional_score": 0.765
     },
     {
       "jd_id": "JD-62",
@@ -1608,8 +1605,8 @@
         "platform",
         "diagnosis"
       ],
-      "score": 0.675,
-      "conditional_score": 0.7714285714285715
+      "score": 0.6125,
+      "conditional_score": 0.7000000000000001
     },
     {
       "jd_id": "JD-63",
@@ -1638,8 +1635,8 @@
         "data",
         "training"
       ],
-      "score": 0.7083333333333334,
-      "conditional_score": 0.85
+      "score": 0.625,
+      "conditional_score": 0.75
     },
     {
       "jd_id": "JD-65",
@@ -1656,8 +1653,8 @@
         "training",
         "platform"
       ],
-      "score": 0.5214285714285715,
-      "conditional_score": 0.73
+      "score": 0.45,
+      "conditional_score": 0.63
     },
     {
       "jd_id": "JD-66",
@@ -1674,8 +1671,8 @@
         "training",
         "platform"
       ],
-      "score": 0.41428571428571426,
-      "conditional_score": 0.725
+      "score": 0.34285714285714286,
+      "conditional_score": 0.6
     },
     {
       "jd_id": "JD-67",
@@ -1706,8 +1703,8 @@
         "training",
         "platform"
       ],
-      "score": 0.5214285714285715,
-      "conditional_score": 0.73
+      "score": 0.45,
+      "conditional_score": 0.63
     },
     {
       "jd_id": "JD-69",
@@ -1723,8 +1720,8 @@
         "platform",
         "diagnosis"
       ],
-      "score": 0.6083333333333333,
-      "conditional_score": 0.73
+      "score": 0.525,
+      "conditional_score": 0.63
     },
     {
       "jd_id": "JD-70",
@@ -1746,16 +1743,16 @@
   "external_dependency": {
     "code": {
       "src_files": 8,
-      "src_lines": 1870,
+      "src_lines": 1741,
       "upstream_import_files": [
         "agent.py",
         "optimize.py"
       ],
       "upstream_import_lines": 363,
-      "upstream_import_share": 0.19411764705882353,
+      "upstream_import_share": 0.20850086157380815,
       "vendored_files": 0,
       "vendored_lines": 0,
-      "tests_lines": 620
+      "tests_lines": 580
     },
     "runtime_roles": [
       {
@@ -1773,10 +1770,6 @@
       {
         "role": "六层评分、证据校验、归因与报告",
         "provider": "本项目"
-      },
-      {
-        "role": "LoRA SFT 执行",
-        "provider": "LlamaFactory（未运行）"
       }
     ],
     "estimates": [
@@ -1803,12 +1796,6 @@
         "what": "六层判定、人工校准、修复回归闭环；落到 rubrics/retail.yaml",
         "share": 9,
         "evidence": "方法来源；六层顺序、证据契约与离线实现为本项目工作"
-      },
-      {
-        "source": "JudgeLM",
-        "what": "专用 Judge SFT、评分偏差；SFT 配置导出",
-        "share": 4,
-        "evidence": "方法借鉴；通用标签未当作零售金标"
       },
       {
         "source": "AgentDebug",
@@ -1841,18 +1828,6 @@
         "evidence": "仅设计参考；当前为单 Agent，不复用其 who 准确率"
       },
       {
-        "source": "LlamaFactory",
-        "what": "四卡 LoRA SFT 执行与配置格式",
-        "share": 2.5,
-        "evidence": "只导出配置与脚本；训练尚未执行"
-      },
-      {
-        "source": "Qwen3-4B",
-        "what": "Judge 底座模型",
-        "share": 1,
-        "evidence": "默认底座；权重不分发，训练尚未执行"
-      },
-      {
         "source": "DSPy",
         "what": "GEPA 集成与模块化优化的方法对照",
         "share": 0.5,
@@ -1866,12 +1841,12 @@
       },
       {
         "source": "自研",
-        "what": "六层 rubric、证据契约、划分隔离、盲标、统计报告、预算门禁、SFT 导出",
-        "share": 26,
-        "evidence": "src 1870 行、tests 606 行；其中 80.6% 模块不 import 上游框架"
+        "what": "六层 rubric、证据契约、划分隔离、盲标、统计报告、预算门禁、模拟题筛选规则",
+        "share": 33.5,
+        "evidence": "src 与 tests 的行数以本次脚本测量为准；当前不包含 Judge 微调"
       }
     ],
-    "estimate_total_external": 74,
+    "estimate_total_external": 66.5,
     "estimate_note": "Normalised capability-share estimate, +/-3-5pp per row; code share is measured separately."
   }
 }

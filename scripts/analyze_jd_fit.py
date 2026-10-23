@@ -29,16 +29,16 @@ NON_GOALS = {"multimodal", "longctx", "code"}
 COVERAGE: dict[str, tuple[float, str]] = {
     "benchmark": (1.0, "τ 零售 114 任务、54/20/40 划分、清单与哈希可追溯"),
     "metric": (1.0, "官方 reward 与六层 Grade 分开保存，不合成单一总分"),
-    "judge": (1.0, "证据约束 Judge、J0–J4、盲标与复核协议"),
+    "judge": (1.0, "证据约束的固定 Judge、盲标与复核协议；当前不训练小 Judge"),
     "agent": (1.0, "τ 轨迹、工具调用、环境重置、最早错误事件"),
     "calibration": (1.0, "任务/种子配对 Bootstrap、ECE/Brier、人工一致性入口"),
-    "contamination": (1.0, "父任务同源分组、test 禁入、导出拒绝"),
+    "contamination": (1.0, "父任务同源分组；test 不进入优化、水位或模拟题"),
     "safety": (0.5, "只有 RED 隐私/越权层，不是对抗安全 benchmark"),
     "multimodal": (0.0, "明确非目标，不用文本项目冒充多模态能力"),
     "longctx": (0.0, "明确非目标；由另一个基座评测项目负责 RULER"),
     "code": (0.0, "明确非目标；由另一个基座评测项目负责 HumanEval+"),
-    "data": (0.75, "盲标导入导出与 train-only SFT 导出；480 条标注尚未执行"),
-    "training": (0.5, "只有 Judge SFT 配置/导出，没有真实训练与接回"),
+    "data": (0.75, "盲标导入导出；480 条标注尚未执行；模拟题规则已写、尚未生成"),
+    "training": (0.0, "当前实验不包含模型微调"),
     "platform": (0.4, "CLI、manifest、报告、冻结/比较；不是调度/看板平台"),
     "diagnosis": (1.0, "六层、cause、error_type、earliest_error_event、证据支持"),
 }
@@ -59,8 +59,6 @@ ESTIMATES = [
      9, "gepa.optimize 直接调用；候选选择与预算边界为本项目补充"),
     ("淘宝文章", "六层判定、人工校准、修复回归闭环；落到 rubrics/retail.yaml",
      9, "方法来源；六层顺序、证据契约与离线实现为本项目工作"),
-    ("JudgeLM", "专用 Judge SFT、评分偏差；SFT 配置导出",
-     4, "方法借鉴；通用标签未当作零售金标"),
     ("AgentDebug", "失败分类 → 定位 → 可执行纠错反馈",
      3.5, "方法映射；未复用其任务、架构或数据"),
     ("Agentic CLEAR", "system / trace / node 三粒度",
@@ -71,16 +69,12 @@ ESTIMATES = [
      1.5, "仅设计参考；不声称实现 DAG 根因分析"),
     ("Who&When", "归因标注与验证；区分候选归因和已验证根因",
      1.5, "仅设计参考；当前为单 Agent，不复用其 who 准确率"),
-    ("LlamaFactory", "四卡 LoRA SFT 执行与配置格式",
-     2.5, "只导出配置与脚本；训练尚未执行"),
-    ("Qwen3-4B", "Judge 底座模型",
-     1, "默认底座；权重不分发，训练尚未执行"),
     ("DSPy", "GEPA 集成与模块化优化的方法对照",
      0.5, "仅引用与版本记录，不进入运行路径"),
     ("AWM", "合成环境的可执行性与质量门槛",
      0.5, "仅扩展设想；未生成环境、未训练"),
-    ("自研", "六层 rubric、证据契约、划分隔离、盲标、统计报告、预算门禁、SFT 导出",
-     26, "src 1870 行、tests 606 行；其中 80.6% 模块不 import 上游框架"),
+    ("自研", "六层 rubric、证据契约、划分隔离、盲标、统计报告、预算门禁、模拟题筛选规则",
+     33.5, "src 与 tests 的行数以本次脚本测量为准；当前不包含 Judge 微调"),
 ]
 
 
@@ -304,7 +298,6 @@ def build():
                 {"role": "被测 Agent 决策循环", "provider": "DeepAgents"},
                 {"role": "提示优化与候选搜索", "provider": "GEPA"},
                 {"role": "六层评分、证据校验、归因与报告", "provider": "本项目"},
-                {"role": "LoRA SFT 执行", "provider": "LlamaFactory（未运行）"},
             ],
             "estimates": [
                 {"source": source, "what": what, "share": share, "evidence": evidence}
@@ -358,7 +351,7 @@ def render(payload):
     scenario_rows = [
         ("当前口径", "—", fmt_pct(payload["scenarios"]["base"]["mean"])),
         ("平台 0.4 → 0.8", "调度/看板/CI 工具链", fmt_pct(payload["scenarios"]["platform_0.8"]["mean"])),
-        ("训练 0.5 → 0.9", "真实 SFT 并接回", fmt_pct(payload["scenarios"]["training_0.9"]["mean"])),
+        ("训练 0 → 0.9", "若以后另做模型微调", fmt_pct(payload["scenarios"]["training_0.9"]["mean"])),
         ("安全 0.5 → 0.8", "独立安全/对抗评测", fmt_pct(payload["scenarios"]["safety_0.8"]["mean"])),
         ("平台 + 训练 + 安全", "三项都补", fmt_pct(payload["scenarios"]["three_weak_spots"]["mean"])),
         ("再补多模态/代码", "非目标也覆盖", fmt_pct(payload["scenarios"]["all_but_non_goals"]["mean"])),
@@ -375,7 +368,7 @@ def render(payload):
         "本文的机器可读结果见 [jd_fit.json](../data/manifests/jd_fit.json)；复现命令见第 6 节。",
         "",
         "**范围**：只回答两个问题——当前仓库的能力画像与 70 条 JD 有多重合，以及各外部项目被借鉴了多少。"
-        "这是**设计覆盖**，不是录用概率，也不是效果证据；真实 API、人工金标与 SFT 尚未执行，"
+        "这是**设计覆盖**，不是录用概率，也不是效果证据；真实 API 与人工金标尚未执行，当前不包含模型微调，"
         "因此“落地效果”证据为 0。",
         "",
         "## 1. 口径",
@@ -438,7 +431,7 @@ def render(payload):
         "",
         f"合计 {summary['tags']} 个标签，覆盖 {summary['tags_covered']:.1f} 个，"
         f"损失 {summary['tags_lost']:.1f} 个（{summary['tags_lost'] / summary['tags'] * 100:.1f}%）。"
-        "平台看似只差 0.6，但出现 58 次；训练与安全是“有协议、无真实运行”。",
+        "平台看似只差 0.6，但出现 58 次。训练不在当前实验里。安全只有 RED 一层，不是专项评测。",
         "",
         "补短板的敏感度（每项单独调整等级）：",
         "",
@@ -457,8 +450,8 @@ def render(payload):
         f"占 {code['upstream_import_share'] * 100:.1f}%；其余 {code['src_lines'] - code['upstream_import_lines']} 行"
         f"（{100 - code['upstream_import_share'] * 100:.1f}%）只依赖标准库/httpx/pydantic。",
         f"- tests 共 {code['tests_lines']} 行。",
-        "- `references.lock.yaml` 固定 6 个源码 commit；τ/DeepAgents/GEPA/DSPy 为 MIT，JudgeLM/LlamaFactory 为 "
-        "Apache-2.0；AWM 锁定树未声明 LICENSE，因此未并入代码。",
+        "- `references.lock.yaml` 固定 5 个源码 commit；τ/DeepAgents/GEPA/DSPy 为 MIT；"
+        "AWM 锁定树未声明 LICENSE，因此未并入代码。当前锁文件不含 Judge 微调框架。",
         "",
         "运行时职责：",
         "",
@@ -475,20 +468,20 @@ def render(payload):
     lines += md_table(("来源", "借了什么 / 复用方式", "占整体"), estimate_rows)
     lines += [
         "",
-        "合计：**运行时框架 45%**（τ-bench 26 + DeepAgents 10 + GEPA 9）、**方法/论文 24.5%**、"
-        "**训练工具 3.5%**、**仅参照 1%**、**自研 26%**；即外部约 74%、自研约 26%。",
+        "合计：**运行时框架 45%**（τ-bench 26 + DeepAgents 10 + GEPA 9）、**方法/论文 20.5%**、"
+        "**仅参照 1%**、**自研 33.5%**；即外部约 66.5%、自研约 33.5%。",
         "",
-        "两个口径不矛盾：按代码行，自研 80.6%；按能力份额，自研 26%。框架提供可运行骨架，"
+        f"两个口径不矛盾：按代码行，自研 {100 - code['upstream_import_share'] * 100:.1f}%；按能力份额，自研 33.5%。框架提供可运行骨架，"
         "自研提供评测协议、证据契约、隔离与治理。引用时请同时给出两个口径，避免把“用了框架”说成"
         "“自研框架”，也避免把“代码自己写”说成“能力全部自研”。",
         "",
         "## 5. 使用边界",
         "",
-        "- 可以写：“基于 τ-bench v1.0.1 零售环境与 DeepAgents 被测 Agent，使用 GEPA 做同预算提示优化，"
-        "自研六层 Rubric、证据约束 Judge、任务隔离/盲标/统计报告与失败归因反馈。”",
+        "- 可以写：“基于 τ-bench v1.0.1 零售环境与 DeepAgents 被测 Agent，用官方终态和盲标区分尺子变化与订单终态，"
+        "自研六层 Rubric、证据约束 Judge、任务隔离和模拟题筛选规则。”",
         "- 不要写：“自研 benchmark / 自研 Agent 框架 / 自研优化算法 / 自研评测平台”。",
         "- 不要写：“提升 X%”——真实实验尚未执行；本文只描述设计覆盖。",
-        "- 相似度是设计覆盖，不是录用概率；真实 API、人工金标、SFT 与正式 test 的结果必须另行回填。",
+        "- 相似度是设计覆盖，不是录用概率；真实 API、人工金标与测试 40 上的 v1/最终版必须另行回填。",
         "",
         "## 6. 复现",
         "",
@@ -504,6 +497,7 @@ def render(payload):
         "| 日期 | 变更 |",
         "|---|---|",
         "| 2026-10-22 | 初始：14 类能力覆盖表、70 条 JD 得分、差距与提升场景、外部依赖代码测量与份额估值 |",
+        "| 2026-10-23 | 当前实验去掉 Judge 微调：训练等级改为 0，份额表去掉 JudgeLM、LlamaFactory 与 Qwen3-4B |",
         "",
     ]
     return "\n".join(lines) + "\n"

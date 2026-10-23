@@ -1,17 +1,15 @@
 """Research contracts added for the dual-project delivery.
 
-These tests exercise evidence localisation, complete human-label retention,
-training export caps and report aggregation. They do not call a model.
+These tests exercise evidence localisation, complete human-label retention
+and report aggregation. They do not call a model.
 """
 from __future__ import annotations
 
 import json
 
 import pytest
-import yaml
 
-from retail_eval.data import (blind_packets, export_sft, judge_sft_config, unblind_annotations,
-                              verbosity_variant)
+from retail_eval.data import blind_packets, unblind_annotations, verbosity_variant
 from retail_eval.judge import fixture_grade
 from retail_eval.report import (calibration_metrics, dimension_metrics, localization_metrics,
                                 make_report, verbosity_consistency)
@@ -109,34 +107,6 @@ def test_calibration_and_dimension_metrics_use_decisions_only(labelled):
     assert dimensions["layers"]["TCC"]["accuracy"] == 1
 
 
-def test_judge_sft_export_cap_and_three_seed_configs(labelled, tmp_path):
-    traces, grades = labelled
-    candidates = [t for t in traces.values() if grades[t.trace_id].overall not in {"parse_error", "error"}]
-    first, second = candidates[:2]
-    live_first, live_second = _live(first), _live(second, task_id="2")
-    rubric = yaml.safe_load((ROOT / "rubrics/retail.yaml").read_text(encoding="utf-8"))
-    manifest = {"splits": {"train": ["1", "2"], "dev": [], "test": []}}
-    labels = [{"trace_id": trace.trace_id, "label_source": "teacher",
-               "grade": grades[trace.trace_id].model_dump()} for trace in (first, second)]
-    target = tmp_path / "sft.jsonl"
-    assert export_sft([live_first], labels[:1], target, "judge", manifest, rubric, max_trajectories=1) == 1
-    exported = json.loads(target.with_suffix(".manifest.json").read_text(encoding="utf-8"))
-    assert exported["rows"] == 1 and exported["label_source_counts"]["teacher"] == 1
-    with pytest.raises(ValueError, match="exceed"):
-        export_sft([live_first, live_second], labels, tmp_path / "too-many.jsonl", "judge", manifest, rubric,
-                   max_trajectories=1)
-
-    configs = tmp_path / "configs"
-    for seed in (42, 43, 44):
-        judge_sft_config(seed, configs, target)
-        config = json.loads((configs / f"seed{seed}.yaml").read_text(encoding="utf-8"))
-        assert config["lora_rank"] == 32 and config["learning_rate"] == 1e-4
-        assert config["per_device_train_batch_size"] * config["gradient_accumulation_steps"] == 4
-        assert config["seed"] == seed
-    with pytest.raises(ValueError, match="42/43/44"):
-        judge_sft_config(45, configs, target)
-
-
 def test_verbosity_variant_preserves_evidence_and_measures_drift(labelled):
     traces, grades = labelled
     trace = _first(traces, grades, lambda g: g.overall in {"pass", "fail"})
@@ -176,3 +146,8 @@ def test_teacher_labels_are_summarised_not_accuracy(labelled, tmp_path):
     assert report["gold_metrics"] is None
     assert report["teacher_labels_summary"]["n"] == 1
     assert "never substitute for human gold" in (tmp_path / "r/report.md").read_text(encoding="utf-8")
+    teacher_path = tmp_path / "teacher.jsonl"
+    teacher_path.write_text(json.dumps(teacher, ensure_ascii=False) + "\n", encoding="utf-8")
+    from retail_eval.run import human_gold
+    with pytest.raises(ValueError, match="human gold"):
+        human_gold(teacher_path, [trace])

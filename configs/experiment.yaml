@@ -27,9 +27,6 @@ budget:
   price_output_per_million: null
   currency: USD
   note: 0 means local-only; a remote endpoint must set max_task_runs before any batch run.
-judge_sft_max_trajectories: 2000
-judge_sft_base: Qwen/Qwen3-4B
-judge_sft_seeds: [42, 43, 44]
 groups:
   A0: {feedback: none, description: baseline}
   A1: {feedback: manual, description: manual revision, max_dev_tasks: 20, max_hours: 2}
@@ -37,9 +34,3 @@ groups:
   A3: {feedback: layered, description: GEPA with layered attribution}
   A3_no_layer: {feedback: no_layer, description: remove layer information}
   A3_no_evidence: {feedback: no_evidence, description: remove evidence locations}
-judge_groups:
-  J0: {model_role: small_base, prompt: generic}
-  J1: {model_role: small_base, prompt: layered}
-  J2: {model_role: small_sft, prompt: generic}
-  J3: {model_role: small_sft, prompt: layered}
-  J4: {model_role: strong, prompt: layered}

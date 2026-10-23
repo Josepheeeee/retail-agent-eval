@@ -31,7 +31,7 @@
 | DeepAgents完整源码与运行适配 | 源码已获取；SDK适配已验证 | external/deepagents、agent.py、references.lock.yaml |
 | τ-bench v1.0.1任务/用户/工具/评分 | 源码及数据已获取；适配已验证 | external/tau-bench，固定commit；5任务脚本模型检查 |
 | DSPy / GEPA来源与正常基线 | 已实现/已验证公开API | external/dspy、external/gepa、optimize.py；当前实际用独立GEPA包 |
-| JudgeLM完整参考与训练依据 | 参考已完成；业务SFT待执行 | external/JudgeLM、REFERENCES.md、export-sft入口 |
+| 固定 Judge，不训练小模型 | 当前实验已从代码移除微调入口 | prompts/judge.md、judge 命令；无 export-sft |
 | 每个参考的来源、版本、许可、用途、步骤与区别 | 已完成 | REFERENCES.md、references.lock.yaml、fetch_references.py |
 | AWM可执行扩充依据 | 参考已完成；属于独立扩展 | external/agent-world-model；源码根目录未声明LICENSE，不并入本项目 |
 
@@ -39,7 +39,7 @@
 
 | 原计划要求 | 状态 | 文件位置/证据 |
 |---|---|---|
-| 三个研究问题与预期方向 | 已完成 | EXPERIMENTS.md第1部分，不预填收益 |
+| 尺子与官方终态两条主终点 | 已写入协议；真实比较未执行 | EXPERIMENTS.md第1部分；模拟题见第12章 |
 | 零售发布前回归与结论边界 | 已完成 | README、EXPERIMENTS、CONTRIBUTIONS |
 | 负结果、退化、不确定性保留 | 协议及统计入口已完成；真实结论待执行 | EXPERIMENTS第9部分、report.py |
 
@@ -47,7 +47,7 @@
 
 | 原计划要求 | 状态 | 文件位置/证据 |
 |---|---|---|
-| τ-bench、AgentRewardBench、JudgeLM、GEPA、AWM | 已完成来源与方法映射 | REFERENCES.md第3部分 |
+| τ-bench、AgentRewardBench、GEPA、AWM | 已完成来源与方法映射；当前不训练 Judge | REFERENCES.md第3部分 |
 | 后续追加CLEAR、AgentEval、AgentDebug、Who&When | 已完成 | REFERENCES.md第4部分、PLAN第4部分、引用锁 |
 | 论文支持与本项目效果分开 | 已完成写作约束 | CONTRIBUTIONS、EXPERIMENTS；不宣称六层最优或已有因果证明 |
 
@@ -58,7 +58,7 @@
 | 层级/规则/证据/提示位置反馈 | 已实现/已做离线检查 | optimize.py:feedback；judge.py与证据契约 |
 | data/rubric/agent原因分别处理 | 已实现反馈约束；语义需人工确认 | cause字段、editable判断；无法仅凭字段保证根因真实 |
 | A2正常GEPA反馈，避免弱基线 | 已实现/已检查相同可见信息 | natural/layered共用轨迹与诊断事实 |
-| 是否产生稳定增益 | **待真实主实验和消融** | 需要A2/A3三种子完整正式test及配对CI |
+| 是否产生稳定增益 | **待 v1 与最终版** | 只在测试 40 上比尺子四项和官方终态通过率 |
 | 复现/适配/个人贡献区分 | 已完成 | CONTRIBUTIONS.md |
 
 ## 6. 完整实验设计及执行
@@ -66,7 +66,7 @@
 | 原计划要求 | 实现/设计状态 | 实验完成状态与验收产物 |
 |---|---|---|
 | 114任务、train54/dev20/test40、固定盐和清单 | 已实现/已验证 | data/manifests/splits.json已存在 |
-| 同源隔离、test不进GEPA/SFT | 已实现/已验证契约 | parent检查和导出拒绝测试通过 |
+| 同源隔离、test 不进优化和模拟题 | 已实现父任务门禁 | parent 检查；模拟题规则见 EXPERIMENTS 第 12 章 |
 | train合成扩充 | 质量规则已写；独立扩展 | 首版未合成新任务，不能声称生成环境已实现 |
 | 官方DB/综合奖励/人工标签区分 | 已实现 | 真实评分/人工标签待采集；部分官方奖励含模型NL判断 |
 | 人工480：240/80/160、分层盲抽 | 抽样/盲包/导入入口已实现 | **未完成标注**，须保留人工来源与复核记录 |
@@ -77,12 +77,11 @@
 | 两个消融，同种子/预算 | 已实现入口与协议 | **未执行消融**；还需6个优化run与测试结果 |
 | 第二模型A0/A2/A3 | 可通过角色配置独立运行 | **未执行迁移/第二模型验证** |
 | train改写与独立test分开报告 | 数据/统计规则已写 | 未生成改写，不以空表当结果 |
-| J0–J4，同小底座的2×2 | 矩阵入口已实现 | **未执行模型矩阵**；需权重登记和固定轨迹 |
-| SFT格式、人/教师来源、禁止test | 导出已实现/已验证 | **未导出真实业务训练集、未远端训练或接回** |
+| J0–J4 与 Judge 微调 | 已从当前项目移除 | 无 judge-matrix、export-sft、训练脚本 |
 | Agent实验固定Judge，Judge实验固定轨迹 | 协议与快照已实现 | 正式执行时核对签名、输入哈希及权重 |
 | 成功率/pass³/违规/重复/副作用/调用成本 | 统计与诊断入口已实现 | 副作用为代理+人工核验；无真实性能数字 |
 | Judge分类、误放行/弃判/覆盖/解析 | 已实现/已验证 | 真实人工金标准确率尚不存在 |
-| 按任务/种子配对Bootstrap、95%CI | 已实现/已验证缺失拒绝 | **未形成真实A3−A2差值/CI** |
+| 测试 40 上 v1 与最终版 | 指标入口已实现 | **尚未有真实 v1 或最终版** |
 | 异常对账，不完整不进正式比较 | 已实现/已验证 | 真实API错误尚待smoke测量，不以脚本检查代替 |
 | 五类交付表/图/案例 | 生成程序/操作路径已具备 | **真实主表、修复案例、消融与泛化结果未形成** |
 | 另一位使用者按文档复现 | README/下一步指南已提供 | **尚未独立复现实验**；自测不等于独立使用者验收 |
@@ -96,13 +95,13 @@
 | 人工标签进入报告不再只剩总体 | 已验证 | unblind_annotations保留layers/error_type/earliest/support/review；make_report输出human_gold_records、维度、定位、校准 |
 | 维度/定位/校准指标 | 已验证 | dimension_metrics、localization_metrics、calibration_metrics、evidence_quality；测试 |
 | 标签来源分开 | 已验证 | 官方reward、Judge、human、teacher分别统计；teacher只作训练摘要 |
-| Judge SFT 2,000条上限与三种子配置 | 已验证 | export_sft max_trajectories、judge_sft_config、42/43/44 YAML |
-| 隔离/完整标签/定位/训练导出/聚合测试 | 已验证 | tests/test_research_contracts.py 8项；总计37 passed |
+| teacher 不进入人机一致 | 已验证 | human_gold 拒绝非 human；报告不把 teacher 算进准确率 |
+| 隔离/完整标签/定位/聚合测试 | 已验证 | tests/test_research_contracts.py；见本轮 pytest |
 | 语义保持的冗长干扰检查 | 已验证 | data.verbosity_variant、report.verbosity_consistency、`judge-robustness` |
 | 远程API预算门禁 | 已验证 | configs budget.max_task_runs、run.assert_api_budget；未登记即停止 |
 | JD 30家公司来源清单 | 已验证 | data/manifests/jd_sources.json；30家、70条、4条排除、11家缺失、6家重检 |
 | 70条逐项复核与能力统计 | 已验证 | docs/JD_ANALYSIS.md、jd_review.json、jd_capability_stats.json |
-| Linux 训练/推理/评测脚本 | 已交付；未在H20实跑 | scripts/linux/*.sh、README |
+| Linux 推理与 smoke 脚本 | 已交付；未在 H20 实跑 | scripts/linux；已去掉训练与 J0–J4 脚本 |
 | Windows 离线入口 | 已验证 | scripts/windows/setup.ps1、check.ps1 |
 
 ## 阶段验收
@@ -111,7 +110,7 @@
 - [x] 阶段2a：固定样例闭环和脚本模型/真实τ环境集成检查。
 - [ ] 阶段2b：至少5个真实模型零售任务，通过模型/API与评分验收。
 - [ ] 阶段3：真实批跑、人工校准和基线报告。
-- [ ] 阶段4：GEPA、分层反馈、消融、第二模型及Judge实验。
+- [ ] 阶段4：模拟题筛选后的 v2、v3…，开发 20 水位，以及测试 40 上的最终版。
 - [ ] 阶段5：真实统计结论、公开数据清单/脱敏产物、独立复现和发布。
 
 下一项是阶段2b，执行[下一步操作指南](NEXT_STEPS.md)。`data/manifests/plan_audit.json`保存本次机器检查摘要；该摘要用于工程核对，不作为真实模型结果或独立人工验收证据。
