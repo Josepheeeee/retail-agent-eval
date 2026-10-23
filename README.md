@@ -18,15 +18,32 @@
 ## 架构与职责
 
 ```mermaid
-flowchart LR
-  A[任务及划分清单] --> B[DeepAgents 生成业务操作]
-  B --> C[τ 环境执行与用户交互]
-  C --> D[原始轨迹与官方评分]
-  D --> E[清洗及分层Judge]
-  E --> F[人工校准及候选归因]
-  F --> G[训练侧改尺子或助手]
-  G --> H[开发集看水位]
-  H --> I[测试集比较 v1 与最终版]
+flowchart TB
+  runV1["未修改的助手跑出轨迹"]
+
+  subgraph sealed [测试：标完封存]
+    direction TB
+    labelTest["盲标测试轨迹"]
+    recordV1["记下两列指标"]
+    labelTest --> recordV1
+  end
+
+  subgraph loop [训练：迭代到水位不再升]
+    direction TB
+    labelTrain["盲标训练与开发轨迹"]
+    draftSim["LLM 从训练父题起草模拟题"]
+    screenSim["按顺序筛选并由人抽查"]
+    fixRuler["先改清洗或尺子并重打"]
+    fixAgent["终态仍为 0 才改助手"]
+    nextVersion["得到 v2 或下一版"]
+    stopDev{"开发集水位是否不再升"}
+    labelTrain --> draftSim --> screenSim --> fixRuler --> fixAgent --> nextVersion --> stopDev
+    stopDev -->|仍在升| draftSim
+  end
+
+  runV1 --> labelTest
+  runV1 --> labelTrain
+  stopDev -->|不再升| runFinal["测试上再跑最终版并另做盲标"]
 ```
 
 这是轻量评测 Harness：管理版本、数据、执行、评分和产物。DeepAgents 是被测对象；τ 是业务环境。GEPA 代码还在，当前进步不看 A3−A2。第一版不建设 Web 平台，不做跨任务长期记忆，也不训练 Judge。STATE.md 服务于开发助手，不是被测模型的记忆。模拟题规则在 [docs/EXPERIMENTS.md](docs/EXPERIMENTS.md) 第 12 章。
